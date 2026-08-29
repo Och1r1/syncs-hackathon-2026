@@ -1,0 +1,1482 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#2d251a" />
+    <title>Морь Уралдаан — Shagai Horse Race · Games Across Time</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Inter:wght@400;500;600&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      /* ==================================================================
+         Shagai horse race — same archive design as game1.html / index.html
+         ================================================================== */
+      :root {
+        --ink: #2c2419;
+        --ink-soft: #645540;
+        --paper: #d9bd89;
+        --paper-light: #edd7ab;
+        --paper-pale: #f3e4c0;
+        --wood: #211b13;
+        --gold: #b58a45;
+        --gold-bright: #d0a65f;
+        --red: #8a3928;
+        --olive: #6e6a50;
+        --line: rgba(65, 49, 30, 0.28);
+      }
+
+      * { box-sizing: border-box; }
+
+      body {
+        margin: 0;
+        min-height: 100vh;
+        color: var(--ink);
+        font-family: Inter, system-ui, sans-serif;
+        background:
+          radial-gradient(circle at 80% -10%, rgba(255, 255, 255, 0.32), transparent 36%),
+          repeating-linear-gradient(0deg, rgba(76, 56, 30, 0.022) 0 1px, transparent 1px 4px),
+          #c9ac77;
+      }
+      button { font: inherit; }
+      button, a { -webkit-tap-highlight-color: transparent; }
+
+      .page-noise {
+        position: fixed;
+        inset: 0;
+        pointer-events: none;
+        opacity: 0.13;
+        z-index: 50;
+        background-image:
+          radial-gradient(circle at 15% 20%, #000 0 0.5px, transparent 0.7px),
+          radial-gradient(circle at 85% 70%, #000 0 0.6px, transparent 0.8px);
+        background-size: 7px 7px, 11px 11px;
+        mix-blend-mode: multiply;
+      }
+
+      /* ---- topbar ---- */
+      .topbar {
+        height: 70px;
+        padding: 0 42px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        border-bottom: 1px solid rgba(83, 58, 31, 0.17);
+        background: rgba(245, 224, 181, 0.35);
+      }
+      .eyebrow {
+        text-transform: uppercase;
+        letter-spacing: 0.17em;
+        font-size: 10px;
+        color: #715d40;
+      }
+      .text-button {
+        border: 0;
+        background: transparent;
+        color: #4d3d29;
+        cursor: pointer;
+        font-family: "Cormorant Garamond", serif;
+        font-size: 18px;
+        border-bottom: 1px solid transparent;
+        text-decoration: none;
+      }
+      .text-button:hover { border-color: #4d3d29; }
+      .top-actions { display: flex; gap: 20px; align-items: center; }
+
+      .section-label {
+        font-size: 10px;
+        letter-spacing: 0.16em;
+        text-transform: uppercase;
+        color: #796446;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin-bottom: 14px;
+      }
+      .section-label span {
+        border: 1px solid rgba(93, 72, 44, 0.32);
+        width: 28px;
+        height: 22px;
+        display: grid;
+        place-items: center;
+        font-size: 9px;
+      }
+
+      /* ---- three-column exhibit ---- */
+      .game-columns {
+        display: grid;
+        grid-template-columns: 1fr 1.45fr 1fr;
+        min-height: calc(100vh - 70px);
+      }
+      .museum-case, .game-arena, .lore-panel { padding: 28px 26px 30px; }
+      .museum-case {
+        border-right: 1px solid var(--line);
+        background: rgba(230, 206, 158, 0.3);
+        display: flex;
+        flex-direction: column;
+      }
+      .lore-panel {
+        border-left: 1px solid var(--line);
+        background: linear-gradient(rgba(247, 227, 188, 0.75), rgba(225, 196, 143, 0.75));
+        display: flex;
+        flex-direction: column;
+      }
+      .game-arena { display: flex; flex-direction: column; align-items: center; }
+
+      /* ---- LEFT: the pit cam ---- */
+      .viewfinder {
+        position: relative;
+        aspect-ratio: 4 / 3;
+        overflow: hidden;
+        background: radial-gradient(circle at 50% 40%, #726046, #33291d 70%, #221b13);
+        border: 1px solid rgba(66, 47, 27, 0.3);
+        box-shadow: inset 0 0 40px rgba(0, 0, 0, 0.4);
+        margin-top: 8px;
+      }
+      .viewfinder video {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        transform: scaleX(-1);
+        filter: sepia(0.28) saturate(0.8) contrast(1.03) brightness(0.95);
+        display: block;
+      }
+      .viewfinder .scan {
+        position: absolute;
+        inset: 0;
+        background: repeating-linear-gradient(
+          to bottom,
+          rgba(0, 0, 0, 0) 0px,
+          rgba(0, 0, 0, 0.12) 1px,
+          rgba(0, 0, 0, 0) 3px
+        );
+        mix-blend-mode: multiply;
+        pointer-events: none;
+        animation: scanmove 6s linear infinite;
+      }
+      @media (prefers-reduced-motion: reduce) {
+        .viewfinder .scan { animation: none; }
+      }
+      @keyframes scanmove {
+        from { background-position-y: 0; }
+        to { background-position-y: 200px; }
+      }
+      .viewfinder .vignette {
+        position: absolute;
+        inset: 0;
+        box-shadow: inset 0 0 30px 10px rgba(0, 0, 0, 0.55);
+        pointer-events: none;
+      }
+      .viewfinder .cam-tag {
+        position: absolute;
+        top: 8px;
+        left: 10px;
+        font-size: 9px;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+        color: #e6cf9f;
+        text-shadow: 0 0 6px rgba(0, 0, 0, 0.8);
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        z-index: 2;
+      }
+      .cam-tag .dot {
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+        background: rgba(230, 207, 159, 0.35);
+        box-shadow: 0 0 5px currentColor;
+      }
+      .cam-tag .dot.live {
+        background: var(--red);
+        color: var(--red);
+        animation: blink 1.4s ease-in-out infinite;
+      }
+      @keyframes blink {
+        0%, 100% { opacity: 1; }
+        50% { opacity: 0.35; }
+      }
+      .viewfinder .placeholder {
+        position: absolute;
+        inset: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+        padding: 22px;
+        font-family: "Cormorant Garamond", serif;
+        font-size: 15px;
+        line-height: 1.5;
+        color: #e0cfa6;
+      }
+
+      /* ---- wind-up gauge ---- */
+      .gauge-wrap {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 2px;
+        margin-top: 14px;
+        padding: 12px 0 14px;
+        border: 1px solid var(--line);
+        background: rgba(255, 248, 232, 0.35);
+      }
+      .gauge-wrap svg { width: 118px; height: 76px; overflow: visible; }
+      .gauge-track {
+        fill: none;
+        stroke: rgba(65, 49, 30, 0.18);
+        stroke-width: 7;
+        stroke-linecap: round;
+      }
+      .gauge-fill {
+        fill: none;
+        stroke: var(--gold);
+        stroke-width: 7;
+        stroke-linecap: round;
+        transition: stroke-dashoffset 90ms linear;
+      }
+      .gauge-pct {
+        font-family: "Cormorant Garamond", serif;
+        font-size: 24px;
+        color: #4a3419;
+        margin-top: -8px;
+      }
+      .gauge-label {
+        font-size: 9px;
+        letter-spacing: 0.12em;
+        color: #806646;
+        text-transform: uppercase;
+      }
+
+      /* ---- cam status + sensitivity ---- */
+      .status-bar {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 9px;
+        font-size: 10px;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+        color: #6a583d;
+        margin-top: 14px;
+        text-align: center;
+      }
+      .status-bar .pulse {
+        width: 8px;
+        height: 8px;
+        flex: none;
+        border-radius: 50%;
+        background: rgba(65, 49, 30, 0.3);
+        transition: background 200ms, box-shadow 200ms;
+      }
+      .status-bar .pulse.armed {
+        background: var(--olive);
+        box-shadow: 0 0 8px rgba(110, 106, 80, 0.7);
+      }
+      .status-bar .pulse.throwing {
+        background: var(--gold-bright);
+        box-shadow: 0 0 10px rgba(208, 166, 95, 0.8);
+      }
+      .status-bar .pulse.cooldown {
+        background: var(--red);
+        box-shadow: 0 0 8px rgba(138, 57, 40, 0.7);
+      }
+      .status-bar .pulse.waiting {
+        background: var(--gold);
+        box-shadow: 0 0 8px rgba(181, 138, 69, 0.6);
+      }
+      .cam-btn {
+        width: 100%;
+        margin-top: 14px;
+        padding: 12px 16px;
+        border: 1px solid rgba(75, 52, 29, 0.35);
+        background: rgba(255, 244, 221, 0.3);
+        color: #5d482d;
+        cursor: pointer;
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        font-family: "Cormorant Garamond", serif;
+        font-weight: 700;
+        font-size: 15px;
+        transition: 0.2s ease;
+      }
+      .cam-btn:hover:not(:disabled) { background: rgba(255, 244, 221, 0.55); }
+      .cam-btn:disabled { opacity: 0.55; cursor: default; }
+      .sensitivity {
+        margin-top: 14px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        font-size: 9px;
+        color: #765e3c;
+        text-transform: uppercase;
+        letter-spacing: 0.12em;
+      }
+      .sensitivity input[type="range"] { flex: 1; accent-color: var(--gold); }
+
+      /* ---- LEFT: the four faces ---- */
+      .face-list { border-top: 1px solid var(--line); }
+      .face-row {
+        display: grid;
+        grid-template-columns: 34px 1fr auto;
+        gap: 12px;
+        align-items: center;
+        padding: 13px 0;
+        border-bottom: 1px solid var(--line);
+      }
+      .face-glyph {
+        width: 34px;
+        height: 34px;
+        display: grid;
+        place-items: center;
+        border: 1px solid rgba(93, 72, 44, 0.32);
+        background: rgba(255, 248, 232, 0.4);
+        font-size: 17px;
+        color: #5d482d;
+      }
+      .face-row b {
+        display: block;
+        font-family: "Cormorant Garamond", serif;
+        font-size: 18px;
+        font-weight: 700;
+        line-height: 1.1;
+      }
+      .face-row small {
+        font-size: 9px;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        color: #806646;
+      }
+      .face-steps {
+        font-family: "Cormorant Garamond", serif;
+        font-size: 15px;
+        color: #5f4b32;
+        text-align: right;
+        white-space: nowrap;
+      }
+      .lore-fact {
+        margin-top: 18px;
+        padding: 14px;
+        border: 1px solid var(--line);
+        background: rgba(255, 248, 232, 0.35);
+      }
+      .lore-fact small {
+        text-transform: uppercase;
+        letter-spacing: 0.12em;
+        font-size: 9px;
+        color: #765e3c;
+      }
+      .lore-fact p {
+        margin: 6px 0 0;
+        font-size: 12px;
+        line-height: 1.55;
+        color: #6a583d;
+      }
+      .lore-fact p + p { margin-top: 8px; }
+
+      /* ---- CENTRE: the racetrack ---- */
+      .track {
+        width: 100%;
+        max-width: 560px;
+        border: 1px solid rgba(66, 47, 27, 0.3);
+        background: radial-gradient(circle at 50% 60%, #8a7048, #4a3a22 85%);
+        box-shadow: inset 0 0 50px rgba(0, 0, 0, 0.35);
+        padding: 16px 14px;
+        margin-top: 4px;
+      }
+      .lane {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 9px 0;
+      }
+      .lane + .lane { border-top: 1px solid rgba(222, 191, 129, 0.16); }
+      .lane-name {
+        width: 70px;
+        flex: none;
+        font-size: 9px;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        color: #e6cf9f;
+        opacity: 0.75;
+      }
+      .lane.turn .lane-name { opacity: 1; color: var(--gold-bright); }
+      .lane-track {
+        flex: 1;
+        display: flex;
+        gap: 3px;
+        align-items: center;
+      }
+      .stone {
+        flex: 1;
+        height: 15px;
+        min-width: 3px;
+        background: linear-gradient(160deg, rgba(241, 226, 189, 0.32), rgba(143, 115, 69, 0.32));
+        clip-path: polygon(18% 8%, 48% 0%, 82% 12%, 96% 40%, 86% 66%, 96% 90%, 54% 100%, 18% 88%, 4% 58%, 14% 30%);
+      }
+      .stone.passed { background: linear-gradient(160deg, #c9ac74, #8f7345); }
+      .stone.finish { background: linear-gradient(160deg, #d0a65f, #8a3928); }
+      .rider {
+        position: relative;
+        flex: 1;
+        height: 15px;
+        min-width: 3px;
+      }
+      .rider::after {
+        content: "";
+        position: absolute;
+        inset: -5px -2px;
+        background: linear-gradient(160deg, #f1e2bd, #c9ac74 55%, #8f7345);
+        clip-path: polygon(18% 8%, 48% 0%, 82% 12%, 96% 40%, 86% 66%, 96% 90%, 54% 100%, 18% 88%, 4% 58%, 14% 30%);
+        box-shadow: 0 6px 12px rgba(0, 0, 0, 0.5);
+      }
+      .lane.player-b .rider::after {
+        background: linear-gradient(160deg, #e8c9a0, #a8663f 55%, #6d3b22);
+      }
+      .lane-pos {
+        width: 44px;
+        flex: none;
+        text-align: right;
+        font-family: "Cormorant Garamond", serif;
+        font-size: 15px;
+        color: #f0dfbd;
+      }
+
+      /* ---- 3D dice stage ---- */
+      .dice-stage {
+        position: relative;
+        width: 100%;
+        max-width: 560px;
+        aspect-ratio: 16 / 7;
+        margin-top: 16px;
+        border: 1px solid rgba(66, 47, 27, 0.3);
+        background: radial-gradient(circle at 50% 40%, #726046, #33291d 70%, #221b13);
+        box-shadow: inset 0 0 40px rgba(0, 0, 0, 0.4);
+        overflow: hidden;
+      }
+      .dice-stage canvas { width: 100%; height: 100%; display: block; }
+      .dice-stage-msg {
+        position: absolute;
+        inset: 0;
+        display: grid;
+        place-items: center;
+        padding: 20px;
+        text-align: center;
+        font-family: "Cormorant Garamond", serif;
+        font-size: 15px;
+        line-height: 1.5;
+        color: #e0cfa6;
+      }
+
+      /* ---- flat fallback dice ---- */
+      .flat-dice {
+        display: flex;
+        justify-content: center;
+        gap: 14px;
+        width: 100%;
+        max-width: 560px;
+        margin-top: 16px;
+        padding: 22px 14px;
+        border: 1px solid rgba(66, 47, 27, 0.3);
+        background: radial-gradient(circle at 50% 60%, #8a7048, #4a3a22 85%);
+        box-shadow: inset 0 0 50px rgba(0, 0, 0, 0.35);
+      }
+      .flat-die {
+        width: 62px;
+        height: 44px;
+        background: linear-gradient(160deg, #f1e2bd, #c9ac74 55%, #8f7345);
+        clip-path: polygon(18% 8%, 38% 0%, 48% 20%, 62% 4%, 82% 12%, 96% 34%, 86% 58%, 96% 78%, 74% 96%, 54% 82%, 42% 98%, 18% 88%, 4% 62%, 14% 40%, 2% 22%);
+        display: grid;
+        place-items: center;
+        font-size: 20px;
+        color: #3a2c17;
+        box-shadow: 0 10px 18px rgba(0, 0, 0, 0.4);
+        transition: transform 0.25s ease;
+      }
+      .flat-die.throwing { animation: tumble 0.9s cubic-bezier(0.2, 0.6, 0.3, 1); }
+      @keyframes tumble {
+        0% { transform: translateY(0) rotate(0deg) scale(1); }
+        45% { transform: translateY(-38px) rotate(320deg) scale(0.92); }
+        100% { transform: translateY(0) rotate(720deg) scale(1); }
+      }
+      @media (prefers-reduced-motion: reduce) {
+        .flat-die.throwing { animation-duration: 0.35s; }
+      }
+
+      /* ---- dice readout under either stage ---- */
+      .dice-readout {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        width: 100%;
+        max-width: 560px;
+        border: 1px solid var(--line);
+        border-top: 0;
+        background: rgba(255, 248, 232, 0.35);
+      }
+      .dice-readout div {
+        padding: 9px 4px;
+        text-align: center;
+        border-left: 1px solid var(--line);
+      }
+      .dice-readout div:first-child { border-left: 0; }
+      .dice-readout b {
+        display: block;
+        font-family: "Cormorant Garamond", serif;
+        font-size: 16px;
+        font-weight: 700;
+      }
+      .dice-readout small {
+        font-size: 8px;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        color: #806646;
+      }
+
+      /* ---- controls ---- */
+      .throw-cta {
+        margin-top: 20px;
+        padding: 16px 34px;
+        border: 1px solid #7e5a2e;
+        background: #8d6837;
+        color: #f2dfb9;
+        cursor: pointer;
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        font-family: "Cormorant Garamond", serif;
+        font-weight: 700;
+        font-size: 18px;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        transition: 0.2s ease;
+      }
+      .throw-cta:hover:not(:disabled) { background: #785528; transform: translateY(-1px); }
+      .throw-cta:disabled { opacity: 0.5; cursor: default; transform: none; }
+      .throw-cta.secondary {
+        background: transparent;
+        color: #5d482d;
+        border-color: rgba(75, 52, 29, 0.35);
+        font-size: 15px;
+        padding: 12px 24px;
+      }
+      .throw-cta.secondary:hover:not(:disabled) { background: rgba(255, 244, 221, 0.4); }
+      .arena-actions {
+        display: flex;
+        gap: 12px;
+        align-items: center;
+        flex-wrap: wrap;
+        justify-content: center;
+      }
+      .arena-hint {
+        margin-top: 12px;
+        font-size: 11px;
+        letter-spacing: 0.05em;
+        color: #6a583d;
+        text-align: center;
+        max-width: 470px;
+        line-height: 1.6;
+        min-height: 34px;
+      }
+
+      /* ---- RIGHT: the reading ---- */
+      .lore-block { margin-top: 18px; }
+      .section-label + .lore-block { margin-top: 10px; }
+      .lore-block small {
+        text-transform: uppercase;
+        letter-spacing: 0.12em;
+        font-size: 9px;
+        color: #765e3c;
+      }
+      .lore-result {
+        font-family: "Cormorant Garamond", serif;
+        font-size: 22px;
+        margin-top: 4px;
+        color: #4a3419;
+      }
+      .step-number {
+        font-family: "Cormorant Garamond", serif;
+        font-weight: 700;
+        font-size: 58px;
+        line-height: 1;
+        color: #4a3419;
+        margin-top: 2px;
+      }
+      .lore-block h3 {
+        font-family: "Cormorant Garamond", serif;
+        font-size: 24px;
+        margin: 4px 0 0;
+        font-weight: 700;
+      }
+      .lore-block p {
+        margin: 6px 0 0;
+        font-family: "Cormorant Garamond", serif;
+        font-size: 15px;
+        line-height: 1.5;
+        color: #5f4b32;
+      }
+      .standings { margin-top: 18px; border-top: 1px solid var(--line); }
+      .standings div {
+        display: grid;
+        grid-template-columns: 1fr auto;
+        padding: 10px 0;
+        border-bottom: 1px solid var(--line);
+        align-items: baseline;
+      }
+      .standings dt {
+        font-size: 9px;
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        color: #806646;
+      }
+      .standings dd {
+        margin: 0;
+        font-family: "Cormorant Garamond", serif;
+        font-size: 18px;
+      }
+      .history {
+        display: flex;
+        gap: 6px;
+        flex-wrap: wrap;
+        margin-top: 8px;
+      }
+      .history .chip {
+        min-width: 26px;
+        height: 24px;
+        padding: 0 6px;
+        border: 1px solid var(--line);
+        background: rgba(255, 248, 232, 0.45);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-family: "Cormorant Garamond", serif;
+        font-size: 13px;
+        color: #5f4b32;
+      }
+      .primary-cta {
+        width: 100%;
+        margin-top: auto;
+        padding: 14px 16px;
+        border: 1px solid #7e5a2e;
+        background: #8d6837;
+        color: #f2dfb9;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        cursor: pointer;
+        text-transform: uppercase;
+        letter-spacing: 0.09em;
+        font-family: "Cormorant Garamond", serif;
+        font-weight: 700;
+        font-size: 16px;
+        transition: 0.2s ease;
+      }
+      .primary-cta:hover { background: #785528; transform: translateY(-1px); }
+
+      @media (max-width: 1080px) {
+        .game-columns { grid-template-columns: 1fr; }
+        .museum-case { border-right: 0; border-bottom: 1px solid var(--line); }
+        .lore-panel { border-left: 0; border-top: 1px solid var(--line); }
+        .topbar { padding: 0 22px; }
+        .primary-cta { margin-top: 22px; }
+      }
+      @media (max-width: 520px) {
+        .museum-case, .game-arena, .lore-panel { padding: 22px 18px 24px; }
+        .lane-name { width: 52px; }
+        .flat-die { width: 46px; height: 34px; font-size: 15px; }
+        .step-number { font-size: 44px; }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="page-noise" aria-hidden="true"></div>
+
+    <header class="topbar">
+      <div class="eyebrow">Mongolia · Морь Уралдаан · Shagai horse race</div>
+      <div class="top-actions">
+        <a class="text-button" href="game1.html">← The throw</a>
+        <a class="text-button" href="index.html#worldmap">Exit exhibit</a>
+      </div>
+    </header>
+
+    <div class="game-columns">
+      <!-- LEFT: pit cam + the four faces of the shagai -->
+      <section class="museum-case">
+        <div class="section-label"><span>◈</span> <b>Pit cam</b></div>
+
+        <div class="viewfinder" id="viewfinder">
+          <video id="video" autoplay playsinline muted></video>
+          <div class="placeholder" id="placeholder">
+            Camera off. Arm the pit cam to cast with a real throwing motion —
+            or use the button under the course.
+          </div>
+          <div class="scan"></div>
+          <div class="vignette"></div>
+          <div class="cam-tag"><span class="dot" id="camDot"></span> Pit-cam 04</div>
+        </div>
+
+        <div class="gauge-wrap">
+          <svg viewBox="0 0 108 62" aria-hidden="true">
+            <path class="gauge-track" d="M 10 56 A 44 44 0 0 1 98 56" />
+            <path
+              class="gauge-fill"
+              id="gaugeFill"
+              d="M 10 56 A 44 44 0 0 1 98 56"
+              pathLength="100"
+              stroke-dasharray="100"
+              stroke-dashoffset="100"
+            />
+          </svg>
+          <div class="gauge-pct" id="gaugePct">0%</div>
+          <div class="gauge-label">Wind-up</div>
+        </div>
+
+        <div class="status-bar">
+          <span class="pulse" id="statusPulse"></span>
+          <span id="statusText">Camera not started</span>
+        </div>
+
+        <button class="cam-btn" id="startCamBtn">Watch for throw</button>
+
+        <label class="sensitivity" for="sens">
+          Sensitivity
+          <input type="range" id="sens" min="1" max="3" step="1" value="2" />
+          <span id="sensLabel">Medium</span>
+        </label>
+
+        <div class="section-label" style="margin-top: 26px">
+          <span>◈</span> <b>The four faces</b>
+        </div>
+
+        <div class="face-list">
+          <div class="face-row">
+            <span class="face-glyph" aria-hidden="true">⚘</span>
+            <span><b>Морь</b><small>Horse</small></span>
+            <span class="face-steps">1 step</span>
+          </div>
+          <div class="face-row">
+            <span class="face-glyph" aria-hidden="true">⛰</span>
+            <span><b>Тэмээ</b><small>Camel</small></span>
+            <span class="face-steps">—</span>
+          </div>
+          <div class="face-row">
+            <span class="face-glyph" aria-hidden="true">☁</span>
+            <span><b>Хонь</b><small>Sheep</small></span>
+            <span class="face-steps">—</span>
+          </div>
+          <div class="face-row">
+            <span class="face-glyph" aria-hidden="true">✦</span>
+            <span><b>Ямаа</b><small>Goat</small></span>
+            <span class="face-steps">—</span>
+          </div>
+        </div>
+
+        <div class="lore-fact">
+          <small>How the race is run</small>
+          <p>
+            A line of anklebones is laid out as the course and each rider takes
+            one bone as a horse. Riders cast four shagai in turn and move by
+            what lands face up — only the horse moves a rider, one stone for each
+            that shows. Camel, sheep and goat leave you where you stand.
+          </p>
+          <p>
+            <b>Дөрвөн бэрх</b> — all four bones landing on four different faces
+            — is the lucky cast: four steps and another throw. Four of a kind
+            does the same.
+          </p>
+        </div>
+      </section>
+
+      <!-- CENTRE: track + camel dice -->
+      <section class="game-arena">
+        <div class="section-label"><span>◈</span> <b>The course</b></div>
+
+        <div class="track" id="track">
+          <div class="lane player-a" id="laneA">
+            <span class="lane-name">You</span>
+            <span class="lane-track" id="trackA"></span>
+            <span class="lane-pos" id="posA">0</span>
+          </div>
+          <div class="lane player-b" id="laneB">
+            <span class="lane-name">Steppe</span>
+            <span class="lane-track" id="trackB"></span>
+            <span class="lane-pos" id="posB">0</span>
+          </div>
+        </div>
+
+        <!-- 3D camel dice; hidden if the model or WebGL is unavailable -->
+        <div class="dice-stage" id="diceStage">
+          <canvas id="diceCanvas"></canvas>
+          <div class="dice-stage-msg" id="diceStageMsg">
+            Loading the camel dice…
+          </div>
+        </div>
+
+        <!-- flat bone dice — the fallback, and fully playable -->
+        <div class="flat-dice" id="flatDice" hidden>
+          <div class="flat-die" data-die="0">✦</div>
+          <div class="flat-die" data-die="1">✦</div>
+          <div class="flat-die" data-die="2">✦</div>
+          <div class="flat-die" data-die="3">✦</div>
+        </div>
+
+        <div class="dice-readout" id="diceReadout">
+          <div><b data-face="0">—</b><small data-name="0">Bone 1</small></div>
+          <div><b data-face="1">—</b><small data-name="1">Bone 2</small></div>
+          <div><b data-face="2">—</b><small data-name="2">Bone 3</small></div>
+          <div><b data-face="3">—</b><small data-name="3">Bone 4</small></div>
+        </div>
+
+        <div class="arena-actions">
+          <button class="throw-cta" id="throwBtn">
+            <span>Cast the shagai</span><b>✦</b>
+          </button>
+          <button class="throw-cta secondary" id="resetBtn">New race</button>
+        </div>
+
+        <p class="arena-hint" id="arenaHint">
+          Cast four shagai and move your horse along the course. First past the
+          last stone wins the race.
+        </p>
+      </section>
+
+      <!-- RIGHT: the reading -->
+      <aside class="lore-panel">
+        <div class="section-label"><span>◈</span> <b>The reading</b></div>
+
+        <div class="lore-block">
+          <small>Steps won</small>
+          <div class="step-number" id="stepNumber">–</div>
+          <div class="lore-result" id="castLine">Awaiting your cast</div>
+        </div>
+
+        <div class="lore-block">
+          <small>Cast</small>
+          <h3 id="castName">—</h3>
+          <p id="castNote">
+            Cast the shagai to start the race. Each horse that lands face up
+            carries your rider one stone along the course.
+          </p>
+        </div>
+
+        <dl class="standings">
+          <div><dt>You</dt><dd id="standA">0 / 24</dd></div>
+          <div><dt>Steppe rider</dt><dd id="standB">0 / 24</dd></div>
+          <div><dt>Casts</dt><dd id="standCasts">0</dd></div>
+        </dl>
+
+        <div class="lore-block">
+          <small>Your casts</small>
+          <div class="history" id="history"></div>
+        </div>
+
+
+        <div class="lore-fact">
+          <small>Object</small>
+          <p>
+            The dice in this case are a scanned camel standing in for the bone,
+            so the landed face is read from how each camel comes to rest:
+            facing you, turned side-on, or down on either flank.
+          </p>
+        </div>
+
+        <div class="lore-fact">
+          <small>Prototype note</small>
+          <p>
+            Step values and face odds here are illustrative and simplified for
+            this prototype — real anklebones are not evenly weighted, and house
+            rules vary across the steppe. Verify with cultural sources before
+            treating any of this as authoritative.
+          </p>
+        </div>
+
+        <button class="primary-cta" id="finishBtn" hidden>
+          <span id="finishLabel">Race complete</span><b>↗</b>
+        </button>
+      </aside>
+    </div>
+
+    <canvas id="procCanvas" width="48" height="36" style="display: none"></canvas>
+
+    <script type="importmap">
+      {
+        "imports": {
+          "three": "https://cdn.jsdelivr.net/npm/three@0.169.0/build/three.module.js",
+          "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.169.0/examples/jsm/"
+        }
+      }
+    </script>
+
+    <script>
+      /* The bridge js/racedice.js fills in. Declared first so the page works
+         whether the module loads, fails, or never arrives at all. */
+      window.SHAGAI_DICE = {
+        status: "loading",
+        roll: null,
+        onstatus: function () {},
+      };
+    </script>
+
+    <script type="module" src="js/racedice.js"></script>
+
+    <script>
+      (function () {
+        "use strict";
+
+        /* ==============================================================
+           Shagai faces
+           ==============================================================
+           Real anklebones are not evenly weighted — the two narrow sides
+           (horse, camel) come up less often than the broad ones. These
+           weights are an illustrative stand-in, not a measurement. */
+        var FACES = [
+          { mn: "Морь", en: "Horse", glyph: "⚘", steps: 1, weight: 15 },
+          { mn: "Тэмээ", en: "Camel", glyph: "⛰", steps: 0, weight: 15 },
+          { mn: "Хонь", en: "Sheep", glyph: "☁", steps: 0, weight: 35 },
+          { mn: "Ямаа", en: "Goat", glyph: "✦", steps: 0, weight: 35 },
+        ];
+        var TOTAL_WEIGHT = FACES.reduce(function (s, f) {
+          return s + f.weight;
+        }, 0);
+        var COURSE = 24;
+        var BONUS_STEPS = 4;
+
+        function rollFace() {
+          var r = Math.random() * TOTAL_WEIGHT;
+          for (var i = 0; i < FACES.length; i++) {
+            r -= FACES[i].weight;
+            if (r < 0) return i;
+          }
+          return FACES.length - 1;
+        }
+
+        /* ==============================================================
+           State
+           ============================================================== */
+        var state;
+        function freshState() {
+          return {
+            pos: [0, 0],
+            turn: 0, // 0 = you, 1 = the steppe rider
+            casts: 0,
+            history: [],
+            busy: false,
+            over: false,
+          };
+        }
+
+        /* ==============================================================
+           Elements
+           ============================================================== */
+        var trackEls = [
+          document.getElementById("trackA"),
+          document.getElementById("trackB"),
+        ];
+        var posEls = [
+          document.getElementById("posA"),
+          document.getElementById("posB"),
+        ];
+        var laneEls = [
+          document.getElementById("laneA"),
+          document.getElementById("laneB"),
+        ];
+        var standEls = [
+          document.getElementById("standA"),
+          document.getElementById("standB"),
+        ];
+        var standCasts = document.getElementById("standCasts");
+        var stepNumber = document.getElementById("stepNumber");
+        var castLine = document.getElementById("castLine");
+        var castName = document.getElementById("castName");
+        var castNote = document.getElementById("castNote");
+        var historyEl = document.getElementById("history");
+        var throwBtn = document.getElementById("throwBtn");
+        var resetBtn = document.getElementById("resetBtn");
+        var arenaHint = document.getElementById("arenaHint");
+        var finishBtn = document.getElementById("finishBtn");
+        var readout = document.getElementById("diceReadout");
+        var diceStage = document.getElementById("diceStage");
+        var flatDice = document.getElementById("flatDice");
+        var flatDieEls = [].slice.call(
+          flatDice.querySelectorAll(".flat-die"),
+        );
+
+        /* ==============================================================
+           The 3D dice, or the flat ones
+           ============================================================== */
+        var use3D = false;
+
+        window.SHAGAI_DICE.onstatus = function (info) {
+          if (window.SHAGAI_DICE.status === "ready") {
+            use3D = true;
+            flatDice.hidden = true;
+            diceStage.hidden = false;
+          } else {
+            use3D = false;
+            diceStage.hidden = true;
+            flatDice.hidden = false;
+            if (typeof info === "string" && info !== "ready") {
+              arenaHint.textContent = info;
+            }
+          }
+        };
+
+        // If the module never reports in — offline, blocked CDN, no importmap —
+        // fall back on its own so the race is always playable.
+        setTimeout(function () {
+          if (window.SHAGAI_DICE.status === "loading") {
+            window.SHAGAI_DICE.status = "failed";
+            window.SHAGAI_DICE.onstatus(
+              "The camel dice need three.js from a CDN and could not be " +
+                "reached — the flat bone dice are being used instead.",
+            );
+          }
+        }, 12000);
+
+        function animateDice(faces) {
+          if (use3D && window.SHAGAI_DICE.roll) {
+            return window.SHAGAI_DICE.roll(faces);
+          }
+          return new Promise(function (resolve) {
+            flatDieEls.forEach(function (el, i) {
+              el.classList.remove("throwing");
+              // reflow so the animation restarts on every cast
+              void el.offsetWidth;
+              el.classList.add("throwing");
+              setTimeout(
+                function () {
+                  el.textContent = FACES[faces[i]].glyph;
+                },
+                450 + i * 60,
+              );
+            });
+            setTimeout(resolve, 950);
+          });
+        }
+
+        /* ==============================================================
+           Rendering
+           ============================================================== */
+        function buildTracks() {
+          trackEls.forEach(function (el) {
+            el.innerHTML = "";
+            for (var i = 0; i <= COURSE; i++) {
+              var s = document.createElement("span");
+              s.className = "stone";
+              el.appendChild(s);
+            }
+          });
+        }
+
+        function renderTracks() {
+          trackEls.forEach(function (el, p) {
+            var stones = el.children;
+            for (var i = 0; i < stones.length; i++) {
+              var s = stones[i];
+              s.className = "stone";
+              if (i === COURSE) s.classList.add("finish");
+              else if (i < state.pos[p]) s.classList.add("passed");
+              if (i === Math.min(state.pos[p], COURSE)) s.className = "rider";
+            }
+            posEls[p].textContent = state.pos[p];
+            standEls[p].textContent = state.pos[p] + " / " + COURSE;
+            laneEls[p].classList.toggle(
+              "turn",
+              !state.over && state.turn === p,
+            );
+          });
+          standCasts.textContent = state.casts;
+        }
+
+        function renderReadout(faces) {
+          for (var i = 0; i < 4; i++) {
+            var b = readout.querySelector('[data-face="' + i + '"]');
+            var s = readout.querySelector('[data-name="' + i + '"]');
+            if (faces) {
+              b.textContent = FACES[faces[i]].mn;
+              s.textContent = FACES[faces[i]].en;
+            } else {
+              b.textContent = "—";
+              s.textContent = "Bone " + (i + 1);
+            }
+          }
+        }
+
+        function renderHistory() {
+          historyEl.innerHTML = "";
+          state.history
+            .slice(-14)
+            .forEach(function (n) {
+              var chip = document.createElement("span");
+              chip.className = "chip";
+              chip.textContent = n;
+              historyEl.appendChild(chip);
+            });
+        }
+
+        /* ==============================================================
+           Scoring a cast
+           ============================================================== */
+        function scoreCast(faces) {
+          var counts = [0, 0, 0, 0];
+          var steps = 0;
+          faces.forEach(function (f) {
+            counts[f]++;
+            steps += FACES[f].steps;
+          });
+
+          var distinct = counts.filter(function (c) {
+            return c > 0;
+          }).length;
+
+          var bonus = false;
+          var name, note;
+
+          if (distinct === 4) {
+            bonus = true;
+            steps += BONUS_STEPS;
+            name = "Дөрвөн бэрх";
+            note =
+              "Four bones, four different faces — the lucky cast. Four extra " +
+              "steps and the reins stay in your hands for another throw.";
+          } else if (distinct === 1) {
+            bonus = true;
+            steps += BONUS_STEPS;
+            name = "Four " + FACES[faces[0]].en.toLowerCase() + "s";
+            note =
+              "All four bones on the same face — four extra steps and another " +
+              "cast.";
+          } else if (counts[0] > 0) {
+            name =
+              counts[0] === 1
+                ? "One horse"
+                : counts[0] + " horses";
+            note =
+              "Only the horse moves a rider — one stone for each that lands " +
+              "face up.";
+          } else if (counts[1] > 0) {
+            name = counts[1] === 1 ? "One camel" : counts[1] + " camels";
+            note =
+              "Camels, but no horse. The camel carries no rider here — you " +
+              "hold position and the turn passes.";
+          } else {
+            name = "Sheep and goat";
+            note =
+              "No horse showed. Your rider holds position and the turn " +
+              "passes.";
+          }
+
+          return { steps: steps, bonus: bonus, name: name, note: note };
+        }
+
+        /* ==============================================================
+           Turns
+           ============================================================== */
+        function setBusy(busy) {
+          state.busy = busy;
+          throwBtn.disabled = busy || state.over || state.turn !== 0;
+        }
+
+        function takeTurn(player) {
+          if (state.over) return;
+          setBusy(true);
+
+          var faces = [rollFace(), rollFace(), rollFace(), rollFace()];
+
+          animateDice(faces).then(function () {
+            var cast = scoreCast(faces);
+            state.casts++;
+            state.pos[player] = Math.min(
+              COURSE,
+              state.pos[player] + cast.steps,
+            );
+
+            renderReadout(faces);
+            stepNumber.textContent = cast.steps;
+            castName.textContent = cast.name;
+            castNote.textContent = cast.note;
+            castLine.textContent =
+              (player === 0 ? "Your cast" : "The steppe rider's cast") +
+              " · " +
+              faces
+                .map(function (f) {
+                  return FACES[f].mn;
+                })
+                .join(" · ");
+
+            if (player === 0) {
+              state.history.push(cast.steps);
+              renderHistory();
+            }
+
+            if (state.pos[player] >= COURSE) {
+              state.over = true;
+              renderTracks();
+              endRace(player);
+              return;
+            }
+
+            if (!cast.bonus) state.turn = player === 0 ? 1 : 0;
+            renderTracks();
+
+            if (state.turn === 1) {
+              arenaHint.textContent = "The steppe rider takes the reins…";
+              setCamState("waiting");
+              setTimeout(function () {
+                takeTurn(1);
+              }, 900);
+            } else {
+              arenaHint.textContent = cast.bonus
+                ? "A lucky cast — throw again."
+                : "Your turn. Cast the shagai.";
+              setBusy(false);
+              enterCooldown();
+            }
+          });
+        }
+
+        function endRace(winner) {
+          throwBtn.disabled = true;
+          setCamState("over");
+          finishBtn.hidden = false;
+          if (winner === 0) {
+            arenaHint.textContent =
+              "Your horse is home first — the race is yours.";
+            document.getElementById("finishLabel").textContent =
+              "You won the race";
+          } else {
+            arenaHint.textContent =
+              "The steppe rider is home first. Cast again for a new race.";
+            document.getElementById("finishLabel").textContent =
+              "The steppe rider won";
+          }
+        }
+
+        /* ==============================================================
+           Pit cam — throw detection
+           ==============================================================
+           The same frame-difference detector as game1.html: the video is
+           drawn down to a 48x36 buffer every frame, consecutive frames are
+           compared, and a sharp spike in that difference over the recent
+           baseline reads as a throwing motion. Nothing is recorded and no
+           frame ever leaves the browser. */
+        var cam = { on: false, armed: false, throwing: false, cooling: false };
+        var statusText = document.getElementById("statusText");
+        var statusPulse = document.getElementById("statusPulse");
+        var camDot = document.getElementById("camDot");
+
+        function setCamState(mode) {
+          statusPulse.className = "pulse";
+          cam.throwing = mode === "throwing";
+          cam.cooling = mode === "cooldown";
+          cam.armed = mode === "armed";
+
+          if (mode === "armed") {
+            statusPulse.classList.add("armed");
+            statusText.textContent = "Armed — make a throwing motion";
+          } else if (mode === "throwing") {
+            statusPulse.classList.add("throwing");
+            statusText.textContent = "Throw detected!";
+          } else if (mode === "cooldown") {
+            statusPulse.classList.add("cooldown");
+            statusText.textContent = "Resetting…";
+          } else if (mode === "waiting") {
+            statusPulse.classList.add("waiting");
+            statusText.textContent = "Steppe rider is casting…";
+          } else if (mode === "over") {
+            statusText.textContent = cam.on ? "Race over" : "Camera not started";
+          } else {
+            statusText.textContent = cam.on
+              ? "Camera active"
+              : "Camera not started";
+          }
+        }
+
+        function enterCooldown() {
+          if (!cam.on) return;
+          setCamState("cooldown");
+          window.setTimeout(function () {
+            if (!cam.on) return setCamState("off");
+            if (state.over) return setCamState("over");
+            if (state.turn !== 0 || state.busy) return setCamState("waiting");
+            setCamState("armed");
+          }, 900);
+        }
+
+        var video = document.getElementById("video");
+        var placeholder = document.getElementById("placeholder");
+        var procCanvas = document.getElementById("procCanvas");
+        var ctx = procCanvas.getContext("2d", { willReadFrequently: true });
+        var W = procCanvas.width;
+        var H = procCanvas.height;
+        var prevFrame = null;
+        var energyHistory = [];
+        var HIST_LEN = 14;
+        var smoothed = 0;
+        var EMA_ALPHA = 0.35;
+        var GAUGE_GAIN = 9;
+
+        var SENSITIVITY_PRESETS = {
+          1: { threshold: 0.075, spike: 0.045, label: "Low" },
+          2: { threshold: 0.05, spike: 0.03, label: "Medium" },
+          3: { threshold: 0.032, spike: 0.018, label: "High" },
+        };
+        var sensSlider = document.getElementById("sens");
+        var sensLabel = document.getElementById("sensLabel");
+        var currentSens = SENSITIVITY_PRESETS[sensSlider.value];
+        sensSlider.addEventListener("input", function () {
+          currentSens = SENSITIVITY_PRESETS[sensSlider.value];
+          sensLabel.textContent = currentSens.label;
+        });
+
+        var gaugeFill = document.getElementById("gaugeFill");
+        var gaugePct = document.getElementById("gaugePct");
+
+        function updateGauge(v) {
+          var pct = Math.max(0, Math.min(1, v));
+          gaugeFill.setAttribute(
+            "stroke-dashoffset",
+            (100 - pct * 100).toFixed(1),
+          );
+          gaugePct.textContent = Math.round(pct * 100) + "%";
+        }
+
+        function computeEnergy() {
+          ctx.drawImage(video, 0, 0, W, H);
+          var frame = ctx.getImageData(0, 0, W, H).data;
+          if (!prevFrame) {
+            prevFrame = frame;
+            return 0;
+          }
+          var sum = 0;
+          var n = W * H;
+          for (var i = 0; i < frame.length; i += 4) {
+            var gA = (frame[i] + frame[i + 1] + frame[i + 2]) / 3;
+            var gB = (prevFrame[i] + prevFrame[i + 1] + prevFrame[i + 2]) / 3;
+            sum += Math.abs(gA - gB);
+          }
+          prevFrame = frame;
+          return sum / (n * 255);
+        }
+
+        function camLoop() {
+          requestAnimationFrame(camLoop);
+          if (video.readyState < 2) return;
+
+          var raw = computeEnergy();
+          smoothed = smoothed + EMA_ALPHA * (raw - smoothed);
+          updateGauge(smoothed * GAUGE_GAIN);
+
+          energyHistory.push(raw);
+          if (energyHistory.length > HIST_LEN) energyHistory.shift();
+
+          if (!cam.armed || cam.throwing || cam.cooling) return;
+
+          var baselineSlice = energyHistory.slice(
+            0,
+            Math.max(1, energyHistory.length - 3),
+          );
+          var baseline = baselineSlice.length
+            ? Math.min.apply(null, baselineSlice)
+            : raw;
+          var spike = raw - baseline;
+
+          if (raw > currentSens.threshold && spike > currentSens.spike) {
+            if (tryCast()) setCamState("throwing");
+          }
+        }
+
+        var startCamBtn = document.getElementById("startCamBtn");
+
+        startCamBtn.addEventListener("click", function () {
+          if (cam.on) return;
+          if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+            placeholder.textContent =
+              "This browser will not hand over a camera, so use the cast " +
+              "button under the course instead.";
+            return;
+          }
+          startCamBtn.disabled = true;
+          startCamBtn.textContent = "Requesting camera…";
+
+          navigator.mediaDevices
+            .getUserMedia({ video: { facingMode: "user" }, audio: false })
+            .then(function (stream) {
+              video.srcObject = stream;
+              placeholder.style.display = "none";
+              camDot.classList.add("live");
+              cam.on = true;
+              startCamBtn.textContent = "Camera active";
+              setCamState(
+                state.over || state.turn !== 0 || state.busy
+                  ? "waiting"
+                  : "armed",
+              );
+              camLoop();
+            })
+            .catch(function (err) {
+              startCamBtn.disabled = false;
+              startCamBtn.textContent = "Watch for throw";
+              placeholder.textContent =
+                "Couldn't reach the camera (" +
+                (err && err.message ? err.message : "permission denied") +
+                "). You can still cast with the button under the course.";
+            });
+        });
+
+        /* ==============================================================
+           Wiring
+           ============================================================== */
+        /* The one gate every way of casting goes through: the button, the
+           spacebar and the pit cam. Returns whether the cast was taken. */
+        function tryCast() {
+          if (state.busy || state.over || state.turn !== 0) return false;
+          takeTurn(0);
+          return true;
+        }
+
+        throwBtn.addEventListener("click", tryCast);
+
+        window.addEventListener("keydown", function (e) {
+          if (e.code !== "Space" && e.code !== "Enter") return;
+          var tag = document.activeElement.tagName;
+          if (tag === "BUTTON" || tag === "INPUT") return;
+          e.preventDefault();
+          tryCast();
+        });
+
+        function newRace() {
+          state = freshState();
+          finishBtn.hidden = true;
+          renderTracks();
+          renderReadout(null);
+          renderHistory();
+          stepNumber.textContent = "–";
+          castLine.textContent = "Awaiting your cast";
+          castName.textContent = "—";
+          castNote.textContent =
+            "Cast the shagai to start the race. Each horse that lands face up " +
+            "carries your rider one stone along the course.";
+          arenaHint.textContent =
+            "Cast four shagai and move your horse along the course. First " +
+            "past the last stone wins the race.";
+          flatDieEls.forEach(function (el) {
+            el.textContent = "✦";
+          });
+          setBusy(false);
+          setCamState(cam.on ? "armed" : "off");
+        }
+
+        resetBtn.addEventListener("click", newRace);
+        finishBtn.addEventListener("click", newRace);
+
+        buildTracks();
+        newRace();
+      })();
+    </script>
+  </body>
+</html>

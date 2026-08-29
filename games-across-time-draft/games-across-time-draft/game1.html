@@ -3,121 +3,155 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Dice Pit — Throw To Roll (4× d4)</title>
+    <meta name="theme-color" content="#2d251a" />
+    <title>Shagai — Mongolia · Games Across Time</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
-      href="https://fonts.googleapis.com/css2?family=Anton&family=IBM+Plex+Mono:wght@400;500;600&family=Inter:wght@400;500;600;700&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Inter:wght@400;500;600&display=swap"
       rel="stylesheet"
     />
     <style>
+      /* ==================================================================
+         Shagai exhibit — matches the Games Across Time archive design
+         (tokens mirrored from styles.css)
+         ================================================================== */
       :root {
-        --felt-dark: #062018;
-        --felt: #0b3d2e;
-        --felt-light: #155c44;
-        --chalk: #f4efe0;
-        --chalk-dim: #c9c2ab;
-        --brass: #c9a227;
-        --brass-bright: #eecd6b;
-        --red: #a8342f;
-        --shadow: #02110c;
-        --glass: rgba(244, 239, 224, 0.07);
+        --ink: #2c2419;
+        --ink-soft: #645540;
+        --paper: #d9bd89;
+        --paper-light: #edd7ab;
+        --paper-pale: #f3e4c0;
+        --wood: #211b13;
+        --wood-2: #302516;
+        --gold: #b58a45;
+        --gold-bright: #d0a65f;
+        --red: #8a3928;
+        --olive: #6e6a50;
+        --line: rgba(65, 49, 30, 0.28);
+        --shadow: 0 24px 60px rgba(34, 25, 14, 0.22);
         --die-size: 62px;
         --dur: 1000ms;
       }
 
       @media (prefers-reduced-motion: reduce) {
-        :root {
-          --dur: 450ms;
-        }
+        :root { --dur: 450ms; }
       }
 
-      * {
-        box-sizing: border-box;
-      }
+      * { box-sizing: border-box; }
 
-      html,
       body {
         margin: 0;
         min-height: 100vh;
+        color: var(--ink);
+        font-family: Inter, system-ui, sans-serif;
         background:
-          radial-gradient(ellipse at 50% -10%, #123b2c 0%, transparent 60%),
-          var(--felt-dark);
-        color: var(--chalk);
-        font-family: "Inter", sans-serif;
+          radial-gradient(circle at 80% -10%, rgba(255, 255, 255, 0.32), transparent 36%),
+          repeating-linear-gradient(0deg, rgba(76, 56, 30, 0.022) 0 1px, transparent 1px 4px),
+          #c9ac77;
+      }
+      button { font: inherit; }
+      button, a { -webkit-tap-highlight-color: transparent; }
+
+      .page-noise {
+        position: fixed;
+        inset: 0;
+        pointer-events: none;
+        opacity: 0.13;
+        z-index: 50;
+        background-image:
+          radial-gradient(circle at 15% 20%, #000 0 0.5px, transparent 0.7px),
+          radial-gradient(circle at 85% 70%, #000 0 0.6px, transparent 0.8px);
+        background-size: 7px 7px, 11px 11px;
+        mix-blend-mode: multiply;
+      }
+
+      /* ---- topbar ---- */
+      .topbar {
+        height: 70px;
+        padding: 0 42px;
         display: flex;
         align-items: center;
-        justify-content: center;
-        padding: 28px 16px;
-        overflow-x: hidden;
+        justify-content: space-between;
+        border-bottom: 1px solid rgba(83, 58, 31, 0.17);
+        background: rgba(245, 224, 181, 0.35);
       }
-
-      .table {
-        position: relative;
-        width: 100%;
-        max-width: 560px;
-        background:
-          repeating-linear-gradient(
-            115deg,
-            rgba(255, 255, 255, 0.015) 0 2px,
-            transparent 2px 6px
-          ),
-          linear-gradient(
-            160deg,
-            var(--felt-light),
-            var(--felt) 55%,
-            var(--felt-dark)
-          );
-        border-radius: 26px;
-        padding: 22px 22px 26px;
-        box-shadow:
-          0 0 0 1px rgba(201, 162, 39, 0.35),
-          0 0 0 8px var(--felt-dark),
-          0 0 0 9px rgba(201, 162, 39, 0.22),
-          0 30px 60px -20px rgba(0, 0, 0, 0.7);
-      }
-
-      .rail-label {
-        text-align: center;
-        font-family: "Anton", sans-serif;
-        letter-spacing: 0.14em;
-        font-size: 13px;
-        color: var(--brass-bright);
+      .eyebrow {
         text-transform: uppercase;
-        margin: 2px 0 16px;
-        opacity: 0.85;
+        letter-spacing: 0.17em;
+        font-size: 10px;
+        color: #715d40;
       }
-      .rail-label span {
-        color: var(--chalk-dim);
-        font-family: "IBM Plex Mono", monospace;
-        letter-spacing: 0.05em;
-        font-size: 11px;
-        margin-left: 6px;
+      .text-button {
+        border: 0;
+        background: transparent;
+        color: #4d3d29;
+        cursor: pointer;
+        font-family: "Cormorant Garamond", serif;
+        font-size: 18px;
+        border-bottom: 1px solid transparent;
+        text-decoration: none;
       }
+      .text-button:hover { border-color: #4d3d29; }
+      .top-actions { display: flex; gap: 20px; align-items: center; }
 
-      /* ---- top row: viewfinder + gauge ---- */
-      .top-row {
+      .section-label {
+        font-size: 10px;
+        letter-spacing: 0.16em;
+        text-transform: uppercase;
+        color: #796446;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin-bottom: 14px;
+      }
+      .section-label span {
+        border: 1px solid rgba(93, 72, 44, 0.32);
+        width: 28px;
+        height: 22px;
         display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 14px;
-        margin-bottom: 16px;
+        place-items: center;
+        font-size: 9px;
       }
 
+      /* ---- three-column exhibit ---- */
+      .game-columns {
+        display: grid;
+        grid-template-columns: 1fr 1.3fr 1fr;
+        gap: 0;
+        min-height: calc(100vh - 70px);
+      }
+      .museum-case, .game-arena, .lore-panel { padding: 28px 26px 30px; }
+      .museum-case {
+        border-right: 1px solid var(--line);
+        background: rgba(230, 206, 158, 0.3);
+        display: flex;
+        flex-direction: column;
+      }
+      .lore-panel {
+        border-left: 1px solid var(--line);
+        background: linear-gradient(rgba(247, 227, 188, 0.75), rgba(225, 196, 143, 0.75));
+        display: flex;
+        flex-direction: column;
+      }
+      .game-arena { display: flex; flex-direction: column; align-items: center; }
+
+      /* ---- LEFT: pit cam inside the museum case ---- */
       .viewfinder {
         position: relative;
         aspect-ratio: 4 / 3;
-        border-radius: 12px;
         overflow: hidden;
-        background: #04120c;
-        border: 2px solid rgba(201, 162, 39, 0.5);
-        box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.6);
+        background: radial-gradient(circle at 50% 40%, #726046, #33291d 70%, #221b13);
+        border: 1px solid rgba(66, 47, 27, 0.3);
+        box-shadow: inset 0 0 40px rgba(0, 0, 0, 0.4);
+        margin-top: 8px;
       }
       .viewfinder video {
         width: 100%;
         height: 100%;
         object-fit: cover;
         transform: scaleX(-1);
-        filter: saturate(0.85) contrast(1.05) brightness(0.95);
+        filter: sepia(0.28) saturate(0.8) contrast(1.03) brightness(0.95);
         display: block;
       }
       .viewfinder .scan {
@@ -134,60 +168,63 @@
         animation: scanmove 6s linear infinite;
       }
       @media (prefers-reduced-motion: reduce) {
-        .viewfinder .scan {
-          animation: none;
-        }
+        .viewfinder .scan { animation: none; }
       }
       @keyframes scanmove {
-        from {
-          background-position-y: 0;
-        }
-        to {
-          background-position-y: 200px;
-        }
+        from { background-position-y: 0; }
+        to { background-position-y: 200px; }
       }
-
       .viewfinder .vignette {
         position: absolute;
         inset: 0;
-        box-shadow: inset 0 0 30px 10px rgba(0, 0, 0, 0.65);
+        box-shadow: inset 0 0 30px 10px rgba(0, 0, 0, 0.55);
         pointer-events: none;
+      }
+      .case-orbit {
+        position: absolute;
+        border: 1px solid rgba(222, 191, 129, 0.18);
+        border-radius: 50%;
+        pointer-events: none;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+      }
+      .case-orbit-a { width: 78%; aspect-ratio: 1; }
+      .case-orbit-b {
+        width: 96%;
+        aspect-ratio: 2.4;
+        transform: translate(-50%, -50%) rotate(-25deg);
       }
       .viewfinder .cam-tag {
         position: absolute;
-        top: 6px;
-        left: 8px;
-        font-family: "IBM Plex Mono", monospace;
+        top: 8px;
+        left: 10px;
         font-size: 9px;
-        letter-spacing: 0.06em;
-        color: #9be3b5;
-        text-shadow: 0 0 4px rgba(0, 0, 0, 0.8);
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+        color: #e6cf9f;
+        text-shadow: 0 0 6px rgba(0, 0, 0, 0.8);
         display: flex;
         align-items: center;
-        gap: 5px;
+        gap: 6px;
+        z-index: 2;
       }
       .cam-tag .dot {
         width: 6px;
         height: 6px;
         border-radius: 50%;
-        background: #4d4d4d;
+        background: rgba(230, 207, 159, 0.35);
         box-shadow: 0 0 5px currentColor;
       }
       .cam-tag .dot.live {
-        background: #e14b4b;
-        color: #e14b4b;
+        background: var(--red);
+        color: var(--red);
         animation: blink 1.4s ease-in-out infinite;
       }
       @keyframes blink {
-        0%,
-        100% {
-          opacity: 1;
-        }
-        50% {
-          opacity: 0.35;
-        }
+        0%, 100% { opacity: 1; }
+        50% { opacity: 0.35; }
       }
-
       .viewfinder .placeholder {
         position: absolute;
         inset: 0;
@@ -195,119 +232,125 @@
         align-items: center;
         justify-content: center;
         text-align: center;
-        padding: 10px;
-        font-family: "IBM Plex Mono", monospace;
-        font-size: 10.5px;
+        padding: 22px;
+        font-family: "Cormorant Garamond", serif;
+        font-size: 15px;
         line-height: 1.5;
-        color: var(--chalk-dim);
+        color: #e0cfa6;
       }
 
-      /* ---- gauge ---- */
+      /* ---- wind-up gauge ---- */
       .gauge-wrap {
         display: flex;
         flex-direction: column;
         align-items: center;
         justify-content: center;
-        gap: 4px;
-        border-radius: 12px;
-        background: var(--glass);
-        border: 1px solid rgba(244, 239, 224, 0.08);
+        gap: 2px;
+        margin-top: 16px;
+        padding: 12px 0 14px;
+        border: 1px solid var(--line);
+        background: rgba(255, 248, 232, 0.35);
       }
-      .gauge-wrap svg {
-        width: 108px;
-        height: 78px;
-        overflow: visible;
-      }
+      .gauge-wrap svg { width: 118px; height: 76px; overflow: visible; }
       .gauge-track {
         fill: none;
-        stroke: rgba(244, 239, 224, 0.12);
-        stroke-width: 8;
+        stroke: rgba(65, 49, 30, 0.18);
+        stroke-width: 7;
         stroke-linecap: round;
       }
       .gauge-fill {
         fill: none;
-        stroke: var(--brass-bright);
-        stroke-width: 8;
+        stroke: var(--gold);
+        stroke-width: 7;
         stroke-linecap: round;
-        filter: drop-shadow(0 0 4px rgba(238, 205, 107, 0.6));
         transition: stroke-dashoffset 90ms linear;
       }
-      .gauge-label {
-        font-family: "IBM Plex Mono", monospace;
-        font-size: 10px;
-        letter-spacing: 0.12em;
-        color: var(--chalk-dim);
-        text-transform: uppercase;
-        margin-top: -6px;
-      }
       .gauge-pct {
-        font-family: "IBM Plex Mono", monospace;
-        font-size: 15px;
-        color: var(--brass-bright);
-        margin-top: -2px;
+        font-family: "Cormorant Garamond", serif;
+        font-size: 24px;
+        color: #4a3419;
+        margin-top: -8px;
+      }
+      .gauge-label {
+        font-size: 9px;
+        letter-spacing: 0.12em;
+        color: #806646;
+        text-transform: uppercase;
       }
 
-      /* ---- status bar ---- */
+      /* ---- case label (object plaque) ---- */
+      .case-label dl { margin: 20px 0 0; border-top: 1px solid var(--line); }
+      .case-label dl div {
+        display: grid;
+        grid-template-columns: 100px 1fr;
+        padding: 10px 0;
+        border-bottom: 1px solid var(--line);
+      }
+      .case-label dt {
+        font-size: 9px;
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        color: #806646;
+      }
+      .case-label dd {
+        margin: 0;
+        font-family: "Cormorant Garamond", serif;
+        font-size: 14px;
+        line-height: 1.4;
+      }
+
+      /* ---- CENTRE: the throw ---- */
       .status-bar {
         display: flex;
         align-items: center;
         justify-content: center;
-        gap: 8px;
-        font-family: "IBM Plex Mono", monospace;
-        font-size: 11.5px;
-        letter-spacing: 0.08em;
+        gap: 9px;
+        font-size: 10px;
+        letter-spacing: 0.14em;
         text-transform: uppercase;
-        color: var(--chalk-dim);
-        margin-bottom: 14px;
+        color: #6a583d;
+        margin-bottom: 12px;
       }
       .status-bar .pulse {
         width: 8px;
         height: 8px;
         border-radius: 50%;
-        background: #666;
-        transition:
-          background 200ms,
-          box-shadow 200ms;
+        background: rgba(65, 49, 30, 0.3);
+        transition: background 200ms, box-shadow 200ms;
       }
       .status-bar .pulse.armed {
-        background: #3fd18a;
-        box-shadow: 0 0 8px #3fd18a;
+        background: var(--olive);
+        box-shadow: 0 0 8px rgba(110, 106, 80, 0.7);
       }
       .status-bar .pulse.throwing {
-        background: var(--brass-bright);
-        box-shadow: 0 0 10px var(--brass-bright);
+        background: var(--gold-bright);
+        box-shadow: 0 0 10px rgba(208, 166, 95, 0.8);
       }
       .status-bar .pulse.cooldown {
-        background: #c9622a;
-        box-shadow: 0 0 8px #c9622a;
+        background: var(--red);
+        box-shadow: 0 0 8px rgba(138, 57, 40, 0.7);
       }
 
-      /* ---- felt / dice stage ---- */
-      .felt {
+      .arena-tray {
+        width: 100%;
+        max-width: 520px;
+        flex: 1;
+        min-height: 300px;
+        border: 1px solid rgba(66, 47, 27, 0.3);
+        background: radial-gradient(circle at 50% 60%, #8a7048, #4a3a22 85%);
         position: relative;
-        border-radius: 16px;
-        background: radial-gradient(
-          ellipse at 50% 40%,
-          rgba(0, 0, 0, 0) 0%,
-          rgba(0, 0, 0, 0.35) 100%
-        );
-        padding: 22px 8px 18px;
-        margin-bottom: 14px;
+        box-shadow: inset 0 0 50px rgba(0, 0, 0, 0.35);
+        display: flex;
+        align-items: center;
+        justify-content: center;
       }
-
       .dice-row {
         display: flex;
         justify-content: center;
         gap: 22px;
         flex-wrap: nowrap;
       }
-
-      .die-unit {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-      }
-
+      .die-unit { display: flex; flex-direction: column; align-items: center; }
       .die-scene {
         perspective: 500px;
         display: flex;
@@ -316,37 +359,20 @@
         height: 96px;
         width: 84px;
       }
-      .die-float {
-        animation: bob 3.2s ease-in-out infinite;
-      }
-      .die-float.d2 {
-        animation-delay: -0.4s;
-      }
-      .die-float.d3 {
-        animation-delay: -1.1s;
-      }
-      .die-float.d4 {
-        animation-delay: -1.8s;
-      }
+      .die-float { animation: bob 3.2s ease-in-out infinite; }
+      .die-float.d2 { animation-delay: -0.4s; }
+      .die-float.d3 { animation-delay: -1.1s; }
+      .die-float.d4 { animation-delay: -1.8s; }
       @media (prefers-reduced-motion: reduce) {
-        .die-float {
-          animation: none;
-        }
+        .die-float { animation: none; }
       }
-      .die-float.is-throwing {
-        animation-play-state: paused;
-      }
+      .die-float.is-throwing { animation-play-state: paused; }
       @keyframes bob {
-        0%,
-        100% {
-          transform: translateY(0) rotate(0deg);
-        }
-        50% {
-          transform: translateY(-5px) rotate(1.5deg);
-        }
+        0%, 100% { transform: translateY(0) rotate(0deg); }
+        50% { transform: translateY(-5px) rotate(1.5deg); }
       }
 
-      /* ---- tetrahedron (d4) built from 4 clipped triangles ---- */
+      /* ---- anklebone die: tetrahedron of 4 clipped bone faces ---- */
       .tetra {
         position: relative;
         width: var(--die-size);
@@ -362,234 +388,209 @@
         width: var(--die-size);
         height: var(--die-size);
         clip-path: polygon(50% 0%, 100% 100%, 0% 100%);
-        background: linear-gradient(160deg, #fbf7ea, #e2d7b3 65%, #cfc19a);
-        border: none;
-        box-shadow: inset 0 0 0 999px rgba(0, 0, 0, 0);
+        background: linear-gradient(160deg, #f1e2bd, #c9ac74 55%, #8f7345);
         display: flex;
         align-items: flex-end;
         justify-content: center;
         padding-bottom: 14%;
       }
       .tetra .tri .num {
-        font-family: "Anton", sans-serif;
-        font-size: calc(var(--die-size) * 0.24);
-        color: #1b2e24;
-        text-shadow: 0 1px 0 rgba(255, 255, 255, 0.3);
+        font-family: "Cormorant Garamond", serif;
+        font-weight: 700;
+        font-size: calc(var(--die-size) * 0.28);
+        color: #3a2c17;
       }
-      .tetra .tri.face-a {
-        transform: rotateX(19.47deg) translateZ(11px) scale(0.98);
-      }
-      .tetra .tri.face-b {
-        transform: rotateY(120deg) rotateX(19.47deg) translateZ(11px)
-          scale(0.98);
-      }
-      .tetra .tri.face-c {
-        transform: rotateY(240deg) rotateX(19.47deg) translateZ(11px)
-          scale(0.98);
-      }
+      .tetra .tri.face-a { transform: rotateX(19.47deg) translateZ(11px) scale(0.98); }
+      .tetra .tri.face-b { transform: rotateY(120deg) rotateX(19.47deg) translateZ(11px) scale(0.98); }
+      .tetra .tri.face-c { transform: rotateY(240deg) rotateX(19.47deg) translateZ(11px) scale(0.98); }
       .tetra .tri.face-d {
         transform: rotateX(-90deg) translateZ(11px) scale(0.98);
-        background: linear-gradient(160deg, #e2d7b3, #cfc19a 65%, #b9ac86);
+        background: linear-gradient(160deg, #d9c398, #ab8d5c 60%, #755c33);
       }
 
       .die-shadow {
         width: 46px;
         height: 10px;
         margin: 2px auto 0;
-        background: radial-gradient(
-          ellipse,
-          rgba(0, 0, 0, 0.45),
-          transparent 70%
-        );
+        background: radial-gradient(ellipse, rgba(0, 0, 0, 0.5), transparent 70%);
         filter: blur(1px);
       }
-
       .die-result {
-        font-family: "IBM Plex Mono", monospace;
-        font-size: 10px;
-        color: var(--chalk-dim);
+        font-size: 9px;
+        color: #e5d3ab;
         text-transform: uppercase;
-        letter-spacing: 0.08em;
-        margin-top: 4px;
+        letter-spacing: 0.1em;
+        margin-top: 6px;
+        opacity: 0.85;
       }
 
-      /* ---- result readout ---- */
-      .result-row {
+      /* ---- throw controls ---- */
+      .throw-cta {
+        margin-top: 22px;
+        padding: 16px 34px;
+        border: 1px solid #7e5a2e;
+        background: #8d6837;
+        color: #f2dfb9;
+        cursor: pointer;
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        font-family: "Cormorant Garamond", serif;
+        font-weight: 700;
+        font-size: 18px;
         display: flex;
         align-items: center;
-        justify-content: center;
-        gap: 18px;
-        margin-bottom: 16px;
-        flex-wrap: wrap;
+        gap: 12px;
+        transition: 0.2s ease;
       }
-      .result-total {
+      .throw-cta:hover { background: #785528; transform: translateY(-1px); }
+      .throw-cta:disabled { opacity: 0.5; cursor: default; transform: none; }
+      .throw-cta.secondary {
+        background: transparent;
+        color: #5d482d;
+        border-color: rgba(75, 52, 29, 0.35);
+        font-size: 15px;
+        padding: 12px 24px;
+      }
+      .throw-cta.secondary:hover { background: rgba(255, 244, 221, 0.4); }
+      .arena-actions {
         display: flex;
-        flex-direction: column;
+        gap: 12px;
         align-items: center;
+        flex-wrap: wrap;
+        justify-content: center;
+      }
+      .arena-hint {
+        margin-top: 12px;
+        font-size: 11px;
+        letter-spacing: 0.05em;
+        color: #6a583d;
+        text-align: center;
+        max-width: 460px;
+        line-height: 1.6;
+      }
+
+      /* ---- RIGHT: interpretation panel ---- */
+      .lore-block { margin-top: 18px; }
+      .section-label + .lore-block { margin-top: 10px; }
+      .lore-block small {
+        text-transform: uppercase;
+        letter-spacing: 0.12em;
+        font-size: 9px;
+        color: #765e3c;
+      }
+      .lore-result {
+        font-family: "Cormorant Garamond", serif;
+        font-size: 22px;
+        margin-top: 4px;
+        color: #4a3419;
       }
       .result-number {
-        font-family: "Anton", sans-serif;
-        font-size: 46px;
+        font-family: "Cormorant Garamond", serif;
+        font-weight: 700;
+        font-size: 58px;
         line-height: 1;
-        color: var(--brass-bright);
-        text-shadow: 0 0 18px rgba(238, 205, 107, 0.35);
-        min-width: 60px;
-        text-align: center;
-      }
-      .result-meta {
-        font-family: "IBM Plex Mono", monospace;
-        font-size: 10.5px;
-        color: var(--chalk-dim);
-        text-transform: uppercase;
-        letter-spacing: 0.08em;
+        color: #4a3419;
+        margin-top: 2px;
       }
       .history {
         display: flex;
         gap: 6px;
         flex-wrap: wrap;
-        justify-content: center;
-        margin-top: 4px;
-        max-width: 220px;
+        margin-top: 8px;
       }
       .history .chip {
-        min-width: 22px;
-        height: 20px;
-        padding: 0 4px;
-        border-radius: 5px;
-        background: rgba(244, 239, 224, 0.08);
-        border: 1px solid rgba(244, 239, 224, 0.15);
+        min-width: 26px;
+        height: 24px;
+        padding: 0 6px;
+        border: 1px solid var(--line);
+        background: rgba(255, 248, 232, 0.45);
         display: flex;
         align-items: center;
         justify-content: center;
-        font-family: "IBM Plex Mono", monospace;
-        font-size: 10px;
-        color: var(--chalk-dim);
+        font-family: "Cormorant Garamond", serif;
+        font-size: 13px;
+        color: #5f4b32;
       }
-
-      /* ---- controls ---- */
-      .controls {
-        display: flex;
-        flex-direction: column;
-        gap: 10px;
-        align-items: center;
+      .lore-fact {
+        margin-top: 18px;
+        padding: 14px;
+        border: 1px solid var(--line);
+        background: rgba(255, 248, 232, 0.35);
       }
-      .btn {
-        font-family: "IBM Plex Mono", monospace;
+      .lore-fact small {
+        text-transform: uppercase;
+        letter-spacing: 0.12em;
+        font-size: 9px;
+        color: #765e3c;
+      }
+      .lore-fact p {
+        margin: 6px 0 0;
         font-size: 12px;
-        letter-spacing: 0.08em;
-        text-transform: uppercase;
-        padding: 11px 20px;
-        border-radius: 8px;
-        border: 1px solid var(--brass);
-        background: linear-gradient(
-          160deg,
-          rgba(201, 162, 39, 0.18),
-          rgba(201, 162, 39, 0.05)
-        );
-        color: var(--brass-bright);
-        cursor: pointer;
-        width: 100%;
-        max-width: 320px;
-        transition:
-          transform 120ms ease,
-          background 150ms ease,
-          box-shadow 150ms ease;
+        line-height: 1.5;
+        color: #6a583d;
       }
-      .btn:hover {
-        background: linear-gradient(
-          160deg,
-          rgba(201, 162, 39, 0.3),
-          rgba(201, 162, 39, 0.1)
-        );
-      }
-      .btn:active {
-        transform: scale(0.97);
-      }
-      .btn:focus-visible {
-        outline: 2px solid var(--brass-bright);
-        outline-offset: 2px;
-      }
-      .btn.secondary {
-        border-color: rgba(244, 239, 224, 0.25);
-        color: var(--chalk);
-        background: rgba(244, 239, 224, 0.05);
-      }
-      .btn.secondary:hover {
-        background: rgba(244, 239, 224, 0.1);
-      }
-      .btn:disabled {
-        opacity: 0.4;
-        cursor: not-allowed;
-        transform: none;
-      }
-
       .sensitivity {
+        margin-top: auto;
+        padding-top: 18px;
         display: flex;
         align-items: center;
         gap: 10px;
-        font-family: "IBM Plex Mono", monospace;
-        font-size: 10.5px;
-        color: var(--chalk-dim);
+        font-size: 9px;
+        color: #765e3c;
         text-transform: uppercase;
-        letter-spacing: 0.06em;
-        margin-top: 2px;
+        letter-spacing: 0.12em;
       }
       .sensitivity input[type="range"] {
-        width: 110px;
-        accent-color: var(--brass-bright);
+        flex: 1;
+        accent-color: var(--gold);
       }
 
-      .hint {
-        text-align: center;
-        font-family: "IBM Plex Mono", monospace;
-        font-size: 10px;
-        color: rgba(244, 239, 224, 0.4);
-        margin-top: 12px;
-        line-height: 1.6;
+      @media (max-width: 1080px) {
+        .game-columns { grid-template-columns: 1fr; }
+        .museum-case { border-right: 0; border-bottom: 1px solid var(--line); }
+        .lore-panel { border-left: 0; border-top: 1px solid var(--line); }
+        .topbar { padding: 0 22px; }
       }
-
-      @media (max-width: 420px) {
-        .dice-row {
-          gap: 8px;
-        }
-        .die-scene {
-          width: 68px;
-          height: 80px;
-        }
-        :root {
-          --die-size: 50px;
-        }
-        .result-number {
-          font-size: 38px;
-        }
-        .top-row {
-          gap: 10px;
-        }
+      @media (max-width: 520px) {
+        :root { --die-size: 46px; }
+        .dice-row { gap: 8px; }
+        .die-scene { width: 62px; height: 78px; }
+        .result-number { font-size: 44px; }
+        .museum-case, .game-arena, .lore-panel { padding: 22px 18px 24px; }
       }
     </style>
   </head>
   <body>
-    <div class="table">
-      <div class="rail-label">
-        DICE PIT <span>· 4× D4 · CAM-TRIGGERED ROLL</span>
-      </div>
+    <div class="page-noise" aria-hidden="true"></div>
 
-      <div class="top-row">
+    <header class="topbar">
+      <div class="eyebrow">Mongolia · Shagai</div>
+      <div class="top-actions">
+        <a class="text-button" href="game3.html">The horse race →</a>
+        <a class="text-button" href="index.html#worldmap">Exit exhibit</a>
+      </div>
+    </header>
+
+    <div class="game-columns">
+      <!-- LEFT: pit cam in the museum case -->
+      <section class="museum-case">
+        <div class="section-label"><span>◈</span> <b>Object viewer</b></div>
+
         <div class="viewfinder" id="viewfinder">
           <video id="video" autoplay playsinline muted></video>
+          <div class="case-orbit case-orbit-a" aria-hidden="true"></div>
+          <div class="case-orbit case-orbit-b" aria-hidden="true"></div>
           <div class="placeholder" id="placeholder">
-            Camera off.<br />Tap "Watch For Throw" to arm the pit cam — or just
-            use the manual throw button below.
+            Camera off. Arm the pit cam to cast by hand — or use the manual
+            throw in the centre of the exhibit.
           </div>
           <div class="scan"></div>
           <div class="vignette"></div>
-          <div class="cam-tag">
-            <span class="dot" id="camDot"></span> PIT-CAM 04
-          </div>
+          <div class="cam-tag"><span class="dot" id="camDot"></span> Pit-cam 04</div>
         </div>
 
         <div class="gauge-wrap">
-          <svg viewBox="0 0 108 62">
+          <svg viewBox="0 0 108 62" aria-hidden="true">
             <path class="gauge-track" d="M 10 56 A 44 44 0 0 1 98 56" />
             <path
               class="gauge-fill"
@@ -603,54 +604,82 @@
           <div class="gauge-pct" id="gaugePct">0%</div>
           <div class="gauge-label">Wind-up</div>
         </div>
-      </div>
 
-      <div class="status-bar">
-        <span class="pulse" id="statusPulse"></span>
-        <span id="statusText">Camera not started</span>
-      </div>
-
-      <div class="felt">
-        <div class="dice-row" id="diceRow">
-          <!-- 4 die units injected by JS -->
+        <div class="case-label">
+          <dl>
+            <div><dt>Object</dt><dd>Shagai · sheep anklebone</dd></div>
+            <div><dt>Material</dt><dd>Bone, sometimes dyed or weighted</dd></div>
+            <div>
+              <dt>Significance</dt>
+              <dd>Used in games, divination and teaching across the Mongolian steppe.</dd>
+            </div>
+          </dl>
         </div>
-      </div>
+      </section>
 
-      <div class="result-row">
-        <div class="result-total">
+      <!-- CENTRE: the throw -->
+      <section class="game-arena">
+        <div class="section-label"><span>◈</span> <b>The throw</b></div>
+
+        <div class="status-bar">
+          <span class="pulse" id="statusPulse"></span>
+          <span id="statusText">Camera not started</span>
+        </div>
+
+        <div class="arena-tray">
+          <div class="dice-row" id="diceRow">
+            <!-- 4 die units injected by JS -->
+          </div>
+        </div>
+
+        <div class="arena-actions">
+          <button class="throw-cta" id="manualBtn">
+            <span>Throw the Shagai</span><b>✦</b>
+          </button>
+          <button class="throw-cta secondary" id="startCamBtn">Watch for throw</button>
+        </div>
+
+        <p class="arena-hint">
+          Arm the pit cam, step back so your arm is in frame, then make a real
+          overhand throwing motion. Nothing is recorded or sent anywhere — the
+          video never leaves your browser.
+        </p>
+      </section>
+
+      <!-- RIGHT: interpretation -->
+      <aside class="lore-panel">
+        <div class="section-label"><span>◈</span> <b>Interpretation</b></div>
+
+        <div class="lore-block">
+          <small>Your result</small>
           <div class="result-number" id="resultNumber">–</div>
-          <div class="result-meta">Sum of 4</div>
+          <div class="lore-result">Sum of four anklebones</div>
         </div>
-        <div>
-          <div class="result-meta" id="rollCount">0 total rolls</div>
+
+        <div class="lore-block">
+          <small>Cast record</small>
+          <div class="lore-result" id="rollCount">0 total rolls</div>
           <div class="history" id="history"></div>
         </div>
-      </div>
 
-      <div class="controls" style="margin-top: 4px">
-        <button class="btn" id="startCamBtn">Watch For Throw</button>
-        <button class="btn secondary" id="manualBtn">Throw Manually</button>
-        <div class="sensitivity">
-          <label for="sens">Sensitivity</label>
+        <div class="lore-fact">
+          <small>Historical note</small>
+          <p>
+            Shagai (anklebones) have been used across the Mongolian steppe for
+            centuries in games, divination and teaching children to count.
+            [Placeholder — verify specifics with cultural sources.]
+          </p>
+        </div>
+
+        <label class="sensitivity" for="sens">
+          Sensitivity
           <input type="range" id="sens" min="1" max="3" step="1" value="2" />
           <span id="sensLabel">Medium</span>
-        </div>
-      </div>
-
-      <div class="hint">
-        Arm the pit cam, step back so your arm is in frame, then make a real
-        overhand throwing motion.<br />
-        Nothing is recorded or sent anywhere — the video never leaves your
-        browser.
-      </div>
+        </label>
+      </aside>
     </div>
 
-    <canvas
-      id="procCanvas"
-      width="48"
-      height="36"
-      style="display: none"
-    ></canvas>
+    <canvas id="procCanvas" width="48" height="36" style="display: none"></canvas>
 
     <script>
       (function () {
@@ -686,7 +715,7 @@
             '<div class="die-shadow"></div>' +
             '<div class="die-result" id="dieResult' +
             index +
-            '">d4 #' +
+            '">Bone ' +
             (index + 1) +
             "</div>";
           return wrap;
