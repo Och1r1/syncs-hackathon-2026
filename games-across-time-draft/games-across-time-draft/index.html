@@ -1,0 +1,219 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <meta name="theme-color" content="#2d251a" />
+  <title>Games Across Time — Prototype</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div class="page-noise" aria-hidden="true"></div>
+
+  <aside class="sidebar" aria-label="Primary navigation">
+    <a class="brand" href="#home" aria-label="Games Across Time home">
+      <span class="brand-mark">古</span>
+      <span class="brand-name">Games<br><b>Across Time</b></span>
+    </a>
+
+    <nav class="nav-list">
+      <button class="nav-item active" data-section="home"><span>⌂</span>Home</button>
+      <button class="nav-item" data-section="map"><span>⌖</span>Map</button>
+      <button class="nav-item" data-section="games"><span>◇</span>Games</button>
+      <button class="nav-item" data-section="cultures"><span>◎</span>Cultures</button>
+      <button class="nav-item" data-section="timeline"><span>⌛</span>Timeline</button>
+    </nav>
+
+    <blockquote>
+      “Play is the oldest language that connects us all.”
+    </blockquote>
+
+    <div class="sidebar-foot">Hackathon prototype · 2026</div>
+  </aside>
+
+  <main id="home" class="app-shell">
+    <header class="topbar">
+      <div class="eyebrow">A living archive of traditional play</div>
+      <div class="top-actions">
+        <button class="text-button" id="aboutBtn">About the project</button>
+        <button class="icon-button" aria-label="Change language">◎</button>
+      </div>
+    </header>
+
+    <section class="hero">
+      <div>
+        <p class="kicker">ONE WORLD · MANY CULTURES · COUNTLESS GAMES</p>
+        <h1>Games Across Time</h1>
+        <p class="hero-copy">Trace the games that travelled through generations. Explore the objects, stories and rituals that still connect people today.</p>
+      </div>
+      <div class="compass" aria-hidden="true">✣</div>
+    </section>
+
+    <section class="content-grid">
+      <div class="atlas-column">
+        <section id="map" class="map-card" aria-label="Interactive cultural games map">
+          <div class="section-label"><span>01</span> Interactive atlas</div>
+          <div class="map-stage" id="mapStage">
+            <img src="assets/map.png" alt="Antique world map showing Vietnam, Japan and Ghana" />
+            <button class="hotspot hotspot-ghana" data-country="ghana" aria-label="Explore Ghana"><span></span></button>
+            <button class="hotspot hotspot-japan" data-country="japan" aria-label="Explore Japan"><span></span></button>
+            <button class="hotspot hotspot-vietnam active" data-country="vietnam" aria-label="Explore Vietnam"><span></span></button>
+            <div class="map-hint">Select a marked country</div>
+          </div>
+        </section>
+
+        <section id="games" class="game-section">
+          <div class="section-heading">
+            <div>
+              <div class="section-label"><span>02</span> Featured collection</div>
+              <h2>Three games. Three histories.</h2>
+            </div>
+            <p>Prototype collection</p>
+          </div>
+
+          <div class="game-cards">
+            <button class="game-card active" data-country="vietnam">
+              <img src="assets/vn-card.png" alt="Ô Ăn Quan game card" />
+              <span class="card-overlay"></span>
+              <span class="card-meta"><small>VIETNAM</small><strong>Ô Ăn Quan</strong><em>Strategy · counting</em></span>
+              <span class="card-index">01</span>
+            </button>
+
+            <button class="game-card" data-country="japan">
+              <img src="assets/jp-card.png" alt="Kemari game card" />
+              <span class="card-overlay"></span>
+              <span class="card-meta"><small>JAPAN</small><strong>Kemari</strong><em>Ceremonial · ball play</em></span>
+              <span class="card-index">02</span>
+            </button>
+
+            <button class="game-card" data-country="ghana">
+              <img src="assets/gh-card.png" alt="Oware game card" />
+              <span class="card-overlay"></span>
+              <span class="card-meta"><small>GHANA</small><strong>Oware</strong><em>Strategy · sowing</em></span>
+              <span class="card-index">03</span>
+            </button>
+          </div>
+        </section>
+      </div>
+
+      <aside class="exhibit" aria-live="polite">
+        <div class="exhibit-topline">
+          <span>ARCHIVE ENTRY</span>
+          <span id="entryNumber">001 / 003</span>
+        </div>
+
+        <div class="country-title-row">
+          <div class="flag-seal" id="flagSeal">★</div>
+          <div>
+            <small>Selected country</small>
+            <h2 id="countryName">Vietnam</h2>
+          </div>
+          <div class="catalogue-stamp" id="catalogueStamp">VN</div>
+        </div>
+
+        <div class="rule"></div>
+
+        <div class="game-heading">
+          <small>Traditional game</small>
+          <h3 id="gameName">Ô Ăn Quan</h3>
+          <p id="gameAlias">Also known as Ô Quan · a traditional Vietnamese strategy game.</p>
+        </div>
+
+        <div class="preview-block">
+          <div class="block-title"><span>Game preview</span><span>01:28</span></div>
+          <button class="video-preview" id="videoPreview" aria-label="Play game preview">
+            <img id="previewImage" src="assets/vn-preview.png" alt="Preview of Ô Ăn Quan" />
+            <span class="video-shade"></span>
+            <span class="play-button">▶</span>
+            <span class="video-caption" id="videoCaption">Watch the game being played</span>
+          </button>
+        </div>
+
+        <div class="how-block">
+          <div class="block-title"><span>How it is played</span><span id="stepCount">Step 1 / 3</span></div>
+          <div class="how-visual">
+            <img src="assets/howto.png" alt="Illustrated steps showing how Ô Ăn Quan is played" />
+            <div class="step-focus" id="stepFocus"></div>
+          </div>
+          <div class="step-controls">
+            <button id="prevStep" aria-label="Previous step">←</button>
+            <p id="stepText">Players distribute pieces through the board’s small fields.</p>
+            <button id="nextStep" aria-label="Next step">→</button>
+          </div>
+        </div>
+
+        <div class="about-game">
+          <div class="block-title"><span>Why it matters</span></div>
+          <p id="description">A counting and strategy game remembered across generations in Vietnam. Its simple board hides careful planning, mental arithmetic and a strong social tradition.</p>
+        </div>
+
+        <button class="primary-cta" id="exploreBtn">
+          <span>Explore the artefact</span>
+          <b>↗</b>
+        </button>
+      </aside>
+    </section>
+
+    <section id="cultures" class="story-strip">
+      <div class="story-number">03</div>
+      <div>
+        <p class="kicker">THE CONNECTION</p>
+        <h2>The rules change. The instinct to play does not.</h2>
+      </div>
+      <p>Compare how strategy, ritual and community appear in games created thousands of kilometres apart.</p>
+    </section>
+
+    <section id="timeline" class="timeline-section">
+      <div class="section-label"><span>04</span> A journey through time</div>
+      <div class="timeline-line">
+        <article><span>PAST</span><b>Origins</b><p>Where the game emerged and what materials people used.</p></article>
+        <article><span>THEN</span><b>Tradition</b><p>How families, communities and ceremonies kept it alive.</p></article>
+        <article><span>NOW</span><b>Connection</b><p>See the game through video, animation and a digital 3D artefact.</p></article>
+      </div>
+    </section>
+
+    <footer>
+      <span>Games Across Time</span>
+      <span>Built for cultural connection · Hackathon prototype</span>
+    </footer>
+  </main>
+
+  <dialog id="aboutDialog">
+    <button class="dialog-close" data-close-dialog aria-label="Close">×</button>
+    <p class="kicker">THE IDEA</p>
+    <h2>We do not just archive games. We let people encounter them.</h2>
+    <p>Games Across Time uses an interactive map, short documentary clips, animated rules and digital 3D artefacts to turn cultural history into something visitors can explore rather than simply read.</p>
+    <div class="dialog-tags"><span>MAP</span><span>VIDEO</span><span>ANIMATION</span><span>3D ARTEFACT</span></div>
+  </dialog>
+
+  <dialog id="artefactDialog" class="artefact-dialog">
+    <button class="dialog-close" data-close-dialog aria-label="Close">×</button>
+    <div class="artefact-grid">
+      <div class="artefact-view">
+        <div class="orbit orbit-a"></div>
+        <div class="orbit orbit-b"></div>
+        <div class="model-placeholder" id="modelPlaceholder">
+          <span>3D</span>
+          <small>Tripo model goes here</small>
+        </div>
+        <div class="drag-note">Drag to rotate · prototype interaction</div>
+      </div>
+      <div class="artefact-copy">
+        <p class="kicker">DIGITAL ARTEFACT</p>
+        <h2 id="artefactTitle">Ô Ăn Quan Board</h2>
+        <p id="artefactDescription">Replace this object with the Tripo-generated GLB model. The surrounding page is already designed to make the 3D object feel like the centrepiece of a museum exhibit.</p>
+        <dl>
+          <div><dt>Origin</dt><dd id="artefactOrigin">Vietnam</dd></div>
+          <div><dt>Object</dt><dd id="artefactType">Game board</dd></div>
+          <div><dt>Experience</dt><dd>Rotate · inspect · learn</dd></div>
+        </dl>
+      </div>
+    </div>
+  </dialog>
+
+  <script src="script.js"></script>
+</body>
+</html>
