@@ -25,6 +25,7 @@
       <button class="nav-item" data-scroll="games"><span>◇</span><b data-i18n="sideGames">Games</b></button>
       <button class="nav-item" data-scroll="cultures"><span>◎</span><b data-i18n="sideCultures">Cultures</b></button>
       <button class="nav-item" data-nav="worldmap"><span>⌖</span><b data-i18n="sideMap">Map</b></button>
+      <button class="nav-item" data-nav="collection"><span>▣</span><b data-i18n="sideCollection">My Collection</b></button>
     </nav>
 
     <blockquote data-i18n="sidebarQuote">
@@ -290,6 +291,11 @@
           <p class="kicker" data-i18n="selectTerritory">SELECT A MARKED TERRITORY</p>
           <p data-i18n="mapInstruction">Hover to preview · click to travel into a culture</p>
           <p class="atlas-status" id="atlasStatus">No passport stamps recorded yet.</p>
+          <div class="journey-counter">
+            <span data-i18n="yourJourney">YOUR JOURNEY</span>
+            <b id="journeyCounter">0 / 24 CULTURES DISCOVERED</b>
+          </div>
+          <button class="text-button finish-journey-btn" id="finishJourneyBtn" data-i18n="finishJourney">Finish Journey</button>
         </div>
 
         <aside class="atlas-preview" id="atlasPreviewPanel" aria-live="polite" hidden>
@@ -487,13 +493,89 @@
         <p class="completion-takeaway" id="completionTakeaway">A short reflection: across cultures, simple objects — bones, seeds, shells — became tools for chance, memory and connection.</p>
 
         <div class="completion-actions">
-          <button class="primary-cta" id="exploreAnotherBtn"><span data-i18n="exploreAnother">Explore another country</span><b>↗</b></button>
+          <button class="primary-cta" id="exploreAnotherBtn"><span data-i18n="continueQuestion">Continue to cultural question</span><b>↗</b></button>
+        </div>
+      </div>
+    </main>
+
+    <!-- ============ SCREEN: QUICK CULTURAL QUESTION ============ -->
+    <main id="screen-question" class="screen" data-screen="question">
+      <div class="passport-frame passport-frame-narrow question-frame">
+        <p class="kicker" data-i18n="beforeTravel">BEFORE YOU TRAVEL ON...</p>
+        <h1 id="questionTitle">A quick cultural question</h1>
+        <p class="question-country" id="questionCountry">Mongolia · Shagai</p>
+        <div class="question-card">
+          <h2 id="questionText">What did you just discover?</h2>
+          <div class="answer-grid" id="answerGrid"></div>
+          <div class="answer-feedback" id="answerFeedback" hidden></div>
+          <button class="primary-cta" id="collectCardBtn" hidden><span data-i18n="collectCard">Collect your card</span><b>↗</b></button>
+        </div>
+      </div>
+    </main>
+
+    <!-- ============ SCREEN: COLLECTION ============ -->
+    <main id="screen-collection" class="screen" data-screen="collection">
+      <header class="topbar topbar-plain">
+        <div class="eyebrow" data-i18n="collectionEyebrow">The cultural archive</div>
+        <div class="top-actions">
           <button class="text-button" data-nav="worldmap" data-i18n="returnWorldMap">Return to World Map</button>
+        </div>
+      </header>
+      <section class="collection-page">
+        <div class="collection-heading">
+          <p class="kicker" data-i18n="collectionEyebrow">THE CULTURAL ARCHIVE</p>
+          <h1 data-i18n="collectionTitle">Games you've discovered across the world.</h1>
+          <b id="collectionCount">0 / 24 CULTURES DISCOVERED</b>
+        </div>
+        <div class="collection-grid" id="collectionGrid"></div>
+      </section>
+    </main>
+
+    <!-- ============ SCREEN: JOURNEY SUMMARY ============ -->
+    <main id="screen-summary" class="screen" data-screen="summary">
+      <div class="passport-frame summary-frame">
+        <p class="kicker" data-i18n="summaryKicker">YOUR JOURNEY ACROSS TIME</p>
+        <h1 data-i18n="summaryTitle">You explored:</h1>
+        <div class="summary-stats">
+          <div><strong id="summaryCountries">0</strong><span data-i18n="summaryCountries">Countries</span></div>
+          <div><strong id="summaryGames">0</strong><span data-i18n="summaryGames">Traditional games</span></div>
+          <div><strong id="summaryContinents">0</strong><span data-i18n="summaryContinents">Continents</span></div>
+        </div>
+        <section class="summary-discoveries">
+          <p class="kicker" data-i18n="yourDiscoveries">YOUR DISCOVERIES</p>
+          <div id="summaryList" class="summary-list"></div>
+        </section>
+        <div class="summary-cards" id="summaryCards"></div>
+        <p class="summary-quote" data-i18n="summaryQuote">Every game tells a story. Thanks for travelling across time.</p>
+        <div class="summary-actions">
+          <button class="primary-cta" id="summaryCollectionBtn"><span data-i18n="viewCollection">View My Collection</span><b>↗</b></button>
+          <button class="text-button" data-nav="worldmap" data-i18n="exploreMore">Explore More</button>
+          <button class="text-button danger-link" id="newJourneyBtn" data-i18n="startNewJourney">Start a New Journey</button>
         </div>
       </div>
     </main>
 
   </div>
+
+  <section class="card-unlock" id="cardUnlock" role="dialog" aria-modal="true" aria-labelledby="unlockTitle" hidden>
+    <div class="card-unlock-backdrop"></div>
+    <div class="card-unlock-panel">
+      <p class="kicker" data-i18n="cardDiscovered">CULTURAL CARD DISCOVERED</p>
+      <article class="archive-card unlock-card" id="unlockCard">
+        <div class="archive-card-art"><img id="unlockCardImage" src="assets/vn-card.png" alt="" /></div>
+        <div class="archive-card-body">
+          <small id="unlockCountry">VIETNAM</small>
+          <h2 id="unlockTitle">Ô Ăn Quan</h2>
+          <p><b data-i18n="cultureSnapshot">Culture snapshot</b><span id="unlockCulture">Culture text</span></p>
+          <p><b data-i18n="didYouKnow">DID YOU KNOW?</b><span id="unlockFact">Fact text</span></p>
+        </div>
+      </article>
+      <div class="card-unlock-actions">
+        <button class="text-button" id="unlockCollectionBtn" data-i18n="viewCollection">View Collection</button>
+        <button class="primary-cta" id="unlockContinueBtn"><span data-i18n="continueExploring">Continue exploring</span><b>↗</b></button>
+      </div>
+    </div>
+  </section>
 
   <section class="certificate-celebration" id="certificateCelebration" role="dialog" aria-modal="true" aria-labelledby="certificateTitle" hidden>
     <div class="certificate-backdrop" data-certificate-close></div>
