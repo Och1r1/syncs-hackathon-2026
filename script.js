@@ -367,12 +367,80 @@ const cultureNotes = {
   }
 };
 
+const countryContinents = {
+  canada: 'North America',
+  unitedStates: 'North America',
+  mexico: 'North America',
+  peru: 'South America',
+  brazil: 'South America',
+  chile: 'South America',
+  argentina: 'South America',
+  unitedKingdom: 'Europe',
+  portugal: 'Europe',
+  finland: 'Europe',
+  sweden: 'Europe',
+  italy: 'Europe',
+  turkiye: 'Asia',
+  kazakhstan: 'Asia',
+  egypt: 'Africa',
+  ghana: 'Africa',
+  kenya: 'Africa',
+  southAfrica: 'Africa',
+  india: 'Asia',
+  china: 'Asia',
+  southKorea: 'Asia',
+  vietnam: 'Asia',
+  mongolia: 'Asia',
+  japan: 'Asia',
+  newZealand: 'Oceania'
+};
+
+const culturalQuestions = {
+  mongolia: {
+    question: 'What were Shagai traditionally made from?',
+    answers: ['Wood', 'Sheep ankle bones', 'Clay', 'Stone'],
+    correctAnswer: 'Sheep ankle bones',
+    correctResponse: 'Shagai traditionally use sheep or goat ankle bones.'
+  },
+  vietnam: {
+    question: 'What skill is especially important in Ô Ăn Quan?',
+    answers: ['Careful counting', 'Singing loudly', 'Balancing on one foot', 'Drawing maps'],
+    correctAnswer: 'Careful counting',
+    correctResponse: 'Ô Ăn Quan rewards counting, planning and timing.'
+  },
+  japan: {
+    question: 'What is the shared goal in Kemari?',
+    answers: ['Keep the ball in the air', 'Knock down pins', 'Capture seeds', 'Throw bones'],
+    correctAnswer: 'Keep the ball in the air',
+    correctResponse: 'Kemari is cooperative: players try to keep the ball moving gracefully.'
+  },
+  ghana: {
+    question: 'Oware belongs to which wider family of games?',
+    answers: ['Mancala games', 'Card games', 'Ice games', 'Word games'],
+    correctAnswer: 'Mancala games',
+    correctResponse: 'Oware belongs to the mancala family of sowing and counting games.'
+  }
+};
+
 Object.assign(countries, atlasEntries);
 Object.entries(cultureNotes).forEach(([key, notes]) => {
   if (countries[key]) Object.assign(countries[key], notes);
 });
+Object.entries(countryContinents).forEach(([key, continent]) => {
+  if (countries[key]) countries[key].continent = continent;
+});
 Object.keys(countries).forEach((key, index, keys) => {
+  const c = countries[key];
+  const gameChoices = [c.game, 'A modern video game', 'A cooking ritual', 'A festival song'];
+  countries[key].id = key;
   countries[key].number = `${String(index + 1).padStart(3, '0')} / ${String(keys.length).padStart(3, '0')}`;
+  countries[key].cultureDescription = c.cultureSnapshot || `${c.country} has a rich cultural tradition connected to community, memory and play.`;
+  countries[key].gameDescription = c.description;
+  countries[key].cardImage = c.cardImage || c.preview || 'assets/vn-card.png';
+  countries[key].question = culturalQuestions[key]?.question || `Which traditional game did you discover from ${c.country}?`;
+  countries[key].answers = culturalQuestions[key]?.answers || gameChoices;
+  countries[key].correctAnswer = culturalQuestions[key]?.correctAnswer || c.game;
+  countries[key].correctResponse = culturalQuestions[key]?.correctResponse || `${c.game} is the traditional game connected to ${c.country} in this archive.`;
 });
 
 /* =========================================================
@@ -534,6 +602,10 @@ let activeScreen = 'home';
 let selectedCountry = 'mongolia';
 let selectedMode = 'solo';
 const completedCountries = new Set();
+const journeyStorageKey = 'gamesAcrossTimeJourney';
+let discoveryRecords = {};
+let pendingCardCountry = null;
+let unlockTimer = null;
 const certificateCountries = ['vietnam', 'mongolia', 'japan', 'ghana'];
 let certificatePending = false;
 let certificateShown = false;
@@ -541,12 +613,57 @@ const screenNavGroup = {
   intro: null,
   home: 'home',
   worldmap: 'worldmap',
+  collection: 'collection',
+  summary: 'collection',
   welcome: 'cultures',
   name: 'cultures',
   gameintro: 'games',
   game: 'games',
-  complete: null
+  complete: null,
+  question: null
 };
+
+function visibleCountryKeys() {
+  if (typeof mapLocations === 'undefined' || typeof hiddenMapCountries === 'undefined') return Object.keys(countries);
+  return Object.keys(mapLocations).filter(key => countries[key] && !hiddenMapCountries.has(key));
+}
+
+function discoveredKeys() {
+  return visibleCountryKeys().filter(key => completedCountries.has(key));
+}
+
+function saveJourneyProgress() {
+  const payload = { completed: [...completedCountries], records: discoveryRecords };
+  localStorage.setItem(journeyStorageKey, JSON.stringify(payload));
+}
+
+function loadJourneyProgress() {
+  try {
+    const saved = JSON.parse(localStorage.getItem(journeyStorageKey) || '{}');
+    const valid = new Set(visibleCountryKeys());
+    (saved.completed || []).forEach(key => {
+      if (valid.has(key)) completedCountries.add(key);
+    });
+    discoveryRecords = Object.fromEntries(Object.entries(saved.records || {}).filter(([key]) => valid.has(key)));
+  } catch {
+    completedCountries.clear();
+    discoveryRecords = {};
+  }
+}
+
+function resetJourneyProgress() {
+  completedCountries.clear();
+  discoveryRecords = {};
+  pendingCardCountry = null;
+  certificatePending = false;
+  certificateShown = false;
+  localStorage.removeItem(journeyStorageKey);
+  updateCompletionMarkers();
+  renderCollection();
+  closeCertificate();
+  closeCardUnlock();
+  showScreen('intro', { instant: true });
+}
 
 function showScreen(name, opts = {}) {
   activeScreen = name;
@@ -566,6 +683,7 @@ function showScreen(name, opts = {}) {
   qa('.screen').forEach(s => s.classList.toggle('active', s.dataset.screen === name));
   if (name === 'worldmap') {
     requestAnimationFrame(() => {
+      updateJourneyCounter();
       initLeafletMap();
       if (leafletMap) {
         leafletMap.invalidateSize();
@@ -573,6 +691,10 @@ function showScreen(name, opts = {}) {
       }
       maybeShowCertificate();
     });
+  } else if (name === 'collection') {
+    renderCollection();
+  } else if (name === 'summary') {
+    renderJourneySummary();
   } else {
     closeAtlasPreview();
   }
@@ -601,6 +723,7 @@ function updateCompletionMarkers() {
       ? t('passportStamped', { countries: [...completedCountries].map(key => countries[key].country).join(', ') })
       : t('noStamps');
   }
+  updateJourneyCounter();
   refreshLeafletMarkers();
 }
 
@@ -757,7 +880,7 @@ const introTranslations = {
 
 const sharedTranslations = {
   en: {
-    sideHome: 'Home', sideMap: 'Map', sideGames: 'Games', sideCultures: 'Cultures', changeSettings: 'Change player setting', sidebarQuote: '“Play is the oldest language that connects us all.”',
+    sideHome: 'Home', sideMap: 'Map', sideGames: 'Games', sideCultures: 'Cultures', sideCollection: 'My Collection', changeSettings: 'Change player setting', sidebarQuote: '“Play is the oldest language that connects us all.”',
     homeEyebrow: 'A living archive of traditional play', aboutProject: 'About the project', homeKicker: 'ONE WORLD · MANY CULTURES · COUNTLESS GAMES', homeTitle: 'Games Across Time',
     homeCopy: 'Trace the games that travelled through generations. Explore the objects, stories and rituals that still connect people today.',
     interactiveAtlas: 'Interactive atlas', enterAtlas: 'Enter the full atlas ↗', featuredCollection: 'Featured collection', fourGames: 'Four games. Four histories.', prototypeCollection: 'Prototype collection',
@@ -766,12 +889,13 @@ const sharedTranslations = {
     connectionKicker: 'THE CONNECTION', connectionTitle: 'The rules change. The instinct to play does not.', connectionCopy: 'Compare how strategy, ritual and community appear in games created thousands of kilometres apart.',
     journeyTime: 'A journey through time', past: 'PAST', origins: 'Origins', originsCopy: 'Where the game emerged and what materials people used.', then: 'THEN', tradition: 'Tradition', traditionCopy: 'How families, communities and ceremonies kept it alive.', now: 'NOW', connection: 'Connection', nowCopy: 'See the game through video, animation and a digital 3D artefact.',
     footerCopy: 'Built for cultural connection · Hackathon prototype', mapEyebrow: 'The interactive atlas', returnArchive: '← Return to archive', selectTerritory: 'SELECT A MARKED TERRITORY', mapInstruction: 'Hover to preview · click to travel into a culture',
+    yourJourney: 'YOUR JOURNEY', culturesDiscovered: 'CULTURES DISCOVERED', finishJourney: 'Finish Journey',
     noStamps: 'No passport stamps recorded yet.', passportStamped: 'Passport stamped: {countries}', soloStatus: 'Solo mode selected: explore the archive at your own pace.', duelStatus: 'Duel mode selected: choose a culture to begin the challenge.', selectedStatus: '{country} selected: read the introduction, then join the game.',
     object: 'Object', type: 'Type', joinGame: 'Join Game', continue: 'Continue', backAtlas: '← Back to the atlas', yourPassport: 'YOUR CULTURAL PASSPORT', enterName: 'Enter your name', revealName: 'Reveal my name',
     nameLabel: 'Name', countryLabel: 'Country', scriptLabel: 'Script', beginGame: 'Begin the Game', howToPlay: 'HOW TO PLAY', exitExhibit: '← Exit exhibit', objectViewer: 'Object viewer', dragRotate: 'Drag to rotate', resetView: 'Reset view',
     material: 'Material', significance: 'Significance', shagaiObject: 'Shagai · sheep anklebone', shagaiMaterial: 'Bone, sometimes dyed or weighted', shagaiSignificance: 'Used in games, divination and teaching across the Mongolian steppe.',
     theThrow: 'The throw', throwShagai: 'Throw the Shagai', interpretation: 'Interpretation', yourResult: 'Your result', fortune: 'Fortune', historicalNote: 'Historical note', finishStamp: 'Finish & collect stamp',
-    archiveComplete: 'ARCHIVE COMPLETE', gameCompleted: 'Game completed', dateLabel: 'Date', exploreAnother: 'Explore another country', returnWorldMap: 'Return to World Map',
+    archiveComplete: 'ARCHIVE COMPLETE', gameCompleted: 'Game completed', dateLabel: 'Date', exploreAnother: 'Explore another country', returnWorldMap: 'Return to World Map', continueQuestion: 'Continue to cultural question',
     ideaKicker: 'THE IDEA', ideaTitle: 'We do not just archive games. We let people encounter them.', ideaCopy: 'Games Across Time uses an interactive map, short documentary clips, animated rules and digital 3D artefacts to turn cultural history into something visitors can explore rather than simply read.',
     culturalIntro: 'CULTURAL INTRODUCTION', welcomeTo: 'Welcome to {country}', countryIntro: '{game} is a traditional game from {country}. This archive entry introduces how it is played, the objects around it and why people still remember it.',
     countryPrompt: 'Before you begin, add your name to the {country} archive passport.', visitorPassport: 'A visitor passport for {country}', visitorScript: 'Visitor name rendering (prototype)', passportLede: 'Your name in {country} style looks like:', beforePlay: '{country} · {game}',
@@ -779,6 +903,9 @@ const sharedTranslations = {
     awaitingThrow: 'Awaiting your throw', throwHint: 'Click to cast all four anklebones onto the felt.', tumbling: 'The bones are tumbling…', loreDefault: 'Throw the Shagai to see a traditional-style interpretation of your result. Interpretations shown here are illustrative and simplified for this prototype.',
     completeTitle: 'You have experienced {game} — {country}.', takeaway: 'You explored {game} from {country}. This archive entry can later be expanded into a playable mini-game.', videoCaption: 'Watch {game} being played', videoPlaying: 'Demo video placeholder · replace with your MP4',
     stepCount: 'Step {current} / {total}', previousStep: 'Previous step', nextStep: 'Next step',
+    beforeTravel: 'BEFORE YOU TRAVEL ON...', collectCard: 'Collect your card', correct: 'Correct', notQuite: 'Not quite', cardDiscovered: 'CULTURAL CARD DISCOVERED', didYouKnow: 'DID YOU KNOW?',
+    collectionEyebrow: 'THE CULTURAL ARCHIVE', collectionTitle: "Games you've discovered across the world.", discovered: 'DISCOVERED', undiscovered: 'UNDISCOVERED', exploreAction: 'Explore →', viewCollection: 'View My Collection',
+    summaryKicker: 'YOUR JOURNEY ACROSS TIME', summaryTitle: 'You explored:', summaryCountries: 'Countries', summaryGames: 'Traditional games', summaryContinents: 'Continents', yourDiscoveries: 'YOUR DISCOVERIES', summaryQuote: 'Every game tells a story. Thanks for travelling across time.', exploreMore: 'Explore More', startNewJourney: 'Start a New Journey',
     certificateKicker: 'CONGRATULATIONS', certificateTitle: 'Congratulations, you have completed all of the culture games in the world.', continueExploring: 'Continue exploring', closeCertificate: 'Close certificate'
   },
   ja: {
@@ -936,6 +1063,26 @@ function t(key, vars = {}) {
   return Object.entries(vars).reduce((text, [name, replacement]) => text.split(`{${name}}`).join(replacement), value);
 }
 
+function escapeHtml(value = '') {
+  return String(value)
+    .replaceAll('&', '&amp;')
+    .replaceAll('<', '&lt;')
+    .replaceAll('>', '&gt;')
+    .replaceAll('"', '&quot;')
+    .replaceAll("'", '&#039;');
+}
+
+function formatDiscoveryCount() {
+  return `${discoveredKeys().length} / ${visibleCountryKeys().length} ${t('culturesDiscovered')}`;
+}
+
+function updateJourneyCounter() {
+  const counter = q('#journeyCounter');
+  if (counter) counter.textContent = formatDiscoveryCount();
+  const collectionCount = q('#collectionCount');
+  if (collectionCount) collectionCount.textContent = formatDiscoveryCount();
+}
+
 function localizeCountryDescription(key) {
   const c = countries[key];
   if (!c) return '';
@@ -986,7 +1133,11 @@ function renderCurrentLanguageState() {
     if (activeScreen === 'gameintro') showJourneyIntro(selectedCountry);
     if (activeScreen === 'game') setupGameScreen();
     if (activeScreen === 'complete') renderCompletionContent();
+    if (activeScreen === 'question') renderQuestionScreen(selectedCountry);
+    if (!q('#cardUnlock')?.hidden) renderUnlockCard(selectedCountry);
   }
+  if (activeScreen === 'collection') renderCollection();
+  if (activeScreen === 'summary') renderJourneySummary();
   updateCompletionMarkers();
 }
 
@@ -1007,6 +1158,175 @@ function closeCertificate() {
   const certificate = q('#certificateCelebration');
   if (certificate) certificate.hidden = true;
   document.body.classList.remove('certificate-open');
+}
+
+function cardArtwork(key) {
+  return countries[key]?.cardImage || countries[key]?.preview || 'assets/vn-card.png';
+}
+
+function archiveCardMarkup(key, opts = {}) {
+  const c = countries[key];
+  const discovered = completedCountries.has(key);
+  const record = discoveryRecords[key];
+  const locked = opts.locked || !discovered;
+  const dateText = record?.discoveredAt ? new Date(record.discoveredAt).toLocaleString() : '';
+  return `
+    <article class="archive-card collection-card ${locked ? 'locked' : 'unlocked'}" data-collection-card="${escapeHtml(key)}">
+      <div class="archive-card-inner">
+        <div class="archive-card-face archive-card-front">
+          <div class="archive-card-art">
+            ${locked ? '<span class="locked-mark">?</span>' : `<img src="${escapeHtml(cardArtwork(key))}" alt="${escapeHtml(c.game)} illustration" />`}
+          </div>
+          <div class="archive-card-body">
+            <small>${escapeHtml(c.country.toUpperCase())}</small>
+            <h2>${locked ? '?' : escapeHtml(c.game)}</h2>
+            <em>${locked ? t('undiscovered') : `✓ ${t('discovered')}`}</em>
+            ${locked ? `<button class="text-button collection-explore" data-explore-country="${escapeHtml(key)}">${t('exploreAction')}</button>` : ''}
+          </div>
+        </div>
+        <div class="archive-card-face archive-card-back">
+          <div class="archive-card-body">
+            <small>${escapeHtml(c.country.toUpperCase())}</small>
+            <h2>${escapeHtml(c.game)}</h2>
+            <p>${escapeHtml(c.gameDescription || c.description)}</p>
+            <p><b>${t('cultureSnapshot')}</b>${escapeHtml(c.cultureDescription || c.cultureSnapshot || '')}</p>
+            <p><b>${t('didYouKnow')}</b>${escapeHtml(c.funFact || '')}</p>
+            ${dateText ? `<time>${escapeHtml(dateText)}</time>` : ''}
+          </div>
+        </div>
+      </div>
+    </article>
+  `;
+}
+
+function renderCollection() {
+  const grid = q('#collectionGrid');
+  if (!grid) return;
+  updateJourneyCounter();
+  grid.innerHTML = visibleCountryKeys().map(key => archiveCardMarkup(key)).join('');
+  qa('[data-collection-card]').forEach(card => {
+    card.addEventListener('click', e => {
+      if (e.target.closest('[data-explore-country]')) return;
+      if (!completedCountries.has(card.dataset.collectionCard)) return;
+      card.classList.toggle('flipped');
+    });
+  });
+  qa('[data-explore-country]').forEach(btn => {
+    btn.addEventListener('click', e => {
+      e.stopPropagation();
+      openCountryFromCollection(btn.dataset.exploreCountry);
+    });
+  });
+}
+
+function openCountryFromCollection(key) {
+  selectedCountry = key;
+  previewCountry = null;
+  showScreen('worldmap');
+  requestAnimationFrame(() => {
+    initLeafletMap();
+    openAtlasPreview(key);
+  });
+}
+
+function renderJourneySummary() {
+  const keys = discoveredKeys();
+  const continents = new Set(keys.map(key => countries[key].continent).filter(Boolean));
+  q('#summaryCountries').textContent = keys.length;
+  q('#summaryGames').textContent = keys.length;
+  q('#summaryContinents').textContent = continents.size;
+
+  const list = q('#summaryList');
+  if (list) {
+    list.innerHTML = keys.length
+      ? keys.map(key => `<div><span>${escapeHtml(countries[key].stamp)}</span><b>${escapeHtml(countries[key].country)} — ${escapeHtml(countries[key].game)}</b></div>`).join('')
+      : '<p>No discoveries yet. Return to the map to begin.</p>';
+  }
+
+  const cards = q('#summaryCards');
+  if (cards) {
+    cards.innerHTML = keys.map(key => archiveCardMarkup(key)).join('');
+  }
+}
+
+function renderQuestionScreen(key = selectedCountry) {
+  const c = countries[key];
+  if (!c) return;
+  pendingCardCountry = key;
+  q('#questionCountry').textContent = `${c.country} · ${c.game}`;
+  q('#questionText').textContent = c.question;
+  const feedback = q('#answerFeedback');
+  const collect = q('#collectCardBtn');
+  feedback.hidden = true;
+  feedback.textContent = '';
+  collect.hidden = true;
+
+  const grid = q('#answerGrid');
+  grid.innerHTML = c.answers.map(answer => `<button type="button" data-answer="${escapeHtml(answer)}">${escapeHtml(answer)}</button>`).join('');
+  qa('#answerGrid button').forEach(btn => {
+    btn.addEventListener('click', () => {
+      qa('#answerGrid button').forEach(option => option.disabled = true);
+      const isCorrect = btn.dataset.answer === c.correctAnswer;
+      btn.classList.add(isCorrect ? 'correct' : 'incorrect');
+      if (!isCorrect) {
+        const correct = qa('#answerGrid button').find(option => option.dataset.answer === c.correctAnswer);
+        correct?.classList.add('correct');
+      }
+      feedback.hidden = false;
+      feedback.className = `answer-feedback ${isCorrect ? 'correct' : 'incorrect'}`;
+      feedback.textContent = isCorrect
+        ? `✓ ${t('correct')}: ${c.correctResponse}`
+        : `${t('notQuite')} — ${c.correctResponse}`;
+      collect.hidden = false;
+    });
+  });
+  showScreen('question', { instant: true });
+}
+
+function unlockCulturalCard(key = pendingCardCountry || selectedCountry) {
+  const c = countries[key];
+  if (!c) return;
+  selectedCountry = key;
+  completedCountries.add(key);
+  discoveryRecords[key] = discoveryRecords[key] || { discoveredAt: new Date().toISOString() };
+  saveJourneyProgress();
+  updateCompletionMarkers();
+  renderUnlockCard(key);
+  if (!certificateShown && hasCompletedCertificateCountries()) certificatePending = true;
+}
+
+function renderUnlockCard(key) {
+  const c = countries[key];
+  const overlay = q('#cardUnlock');
+  if (!overlay || !c) return;
+  clearTimeout(unlockTimer);
+  q('#unlockCardImage').src = cardArtwork(key);
+  q('#unlockCardImage').alt = `${c.game} illustration`;
+  q('#unlockCountry').textContent = c.country.toUpperCase();
+  q('#unlockTitle').textContent = c.game;
+  q('#unlockCulture').textContent = c.cultureDescription || c.cultureSnapshot || '';
+  q('#unlockFact').textContent = c.funFact || '';
+  q('#unlockCard')?.classList.remove('travelling');
+  overlay.hidden = false;
+  unlockTimer = window.setTimeout(() => continueAfterUnlock(), 4800);
+}
+
+function closeCardUnlock() {
+  clearTimeout(unlockTimer);
+  const overlay = q('#cardUnlock');
+  if (overlay) overlay.hidden = true;
+  q('#unlockCard')?.classList.remove('travelling');
+}
+
+function continueAfterUnlock(destination = 'worldmap') {
+  clearTimeout(unlockTimer);
+  const card = q('#unlockCard');
+  card?.classList.add('travelling');
+  window.setTimeout(() => {
+    closeCardUnlock();
+    renderCollection();
+    showScreen(destination);
+  }, card ? 620 : 0);
 }
 
 function animateIntroCount(el, end, duration = 900) {
@@ -1218,12 +1538,14 @@ const continentLabels = [
 
 function markerTooltip(key) {
   const c = countries[key];
+  const isComplete = completedCountries.has(key);
   return `
     <span class="leaflet-tip-card">
       <b>${c.country}</b>
-      <em>${c.game} · ${c.type}</em>
+      <em>${isComplete ? `✓ ${t('discovered')}` : 'Traditional game waiting to be discovered'}</em>
+      <small>${isComplete ? c.game : `[ ${t('exploreAction')} ]`}</small>
       <i class="pin-thumb">${c.seal}</i>
-      <strong class="pin-action">${t('explore')}</strong>
+      <strong class="pin-action">${isComplete ? c.game : t('explore')}</strong>
     </span>
   `;
 }
@@ -1253,7 +1575,7 @@ function refreshLeafletMarkers() {
     el.classList.toggle('active', isActive);
     el.classList.toggle('previewing', previewCountry === key);
     marker.setTooltipContent(markerTooltip(key));
-    el.setAttribute('aria-label', `${c.country}, ${c.game}, ${isComplete ? t('completed') : t('notCompleted')}. ${t('explore')}`);
+    el.setAttribute('aria-label', `${c.country}, ${isComplete ? t('discovered') : t('notCompleted')}, ${c.game}. ${t('explore')}`);
   });
 }
 
@@ -1618,20 +1940,26 @@ function renderCompletionContent() {
 }
 
 function finishJourney() {
-  completedCountries.add(selectedCountry);
-  if (!certificateShown && hasCompletedCertificateCountries()) {
-    certificatePending = true;
-  }
+  pendingCardCountry = selectedCountry;
   renderCompletionContent();
-  updateCompletionMarkers();
   showScreen('complete', { instant: true });
 }
 
 qa('[data-certificate-close]').forEach(el => el.addEventListener('click', closeCertificate));
 
 q('#exploreAnotherBtn').addEventListener('click', () => {
-  updateCompletionMarkers();
-  showScreen('worldmap');
+  renderQuestionScreen(pendingCardCountry || selectedCountry);
+});
+
+q('#collectCardBtn')?.addEventListener('click', () => unlockCulturalCard(pendingCardCountry || selectedCountry));
+q('#unlockContinueBtn')?.addEventListener('click', () => continueAfterUnlock('worldmap'));
+q('#unlockCollectionBtn')?.addEventListener('click', () => continueAfterUnlock('collection'));
+q('#finishJourneyBtn')?.addEventListener('click', () => showScreen('summary'));
+q('#summaryCollectionBtn')?.addEventListener('click', () => showScreen('collection'));
+q('#newJourneyBtn')?.addEventListener('click', () => {
+  if (window.confirm('Start a new journey? This will delete the current classroom progress on this device.')) {
+    resetJourneyProgress();
+  }
 });
 
 /* =========================================================
@@ -1639,5 +1967,6 @@ q('#exploreAnotherBtn').addEventListener('click', () => {
    ========================================================= */
 applyIntroLanguage(q('#introLanguageSelect')?.value || 'en');
 selectHomeCountry('vietnam');
+loadJourneyProgress();
 updateCompletionMarkers();
 showScreen('intro', { instant: true });
